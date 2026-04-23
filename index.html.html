@@ -1,0 +1,5512 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Roadtrip till Grekland 2026 · Amiridis</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0a0e14;
+  --bg-elev: #111720;
+  --bg-card: #151c26;
+  --bg-card-hi: #1d2531;
+  --border: rgba(212, 169, 90, 0.12);
+  --border-hi: rgba(212, 169, 90, 0.28);
+  --text: #f5f1e8;
+  --text-muted: #9ca8b8;
+  --text-dim: #65707e;
+  --gold: #d4a95a;
+  --gold-soft: #e8c78a;
+  --gold-dim: rgba(212, 169, 90, 0.15);
+  --aegean: #4a7ba6;
+  --aegean-soft: #6b97bd;
+  --sunset: #e07856;
+  --sage: #8fb58f;
+  --danger: #d46b5a;
+  --danger-bg: rgba(212, 107, 90, 0.1);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 90px;
+}
+
+/* Backdrop atmosphere */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(212, 169, 90, 0.06), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 90% 80%, rgba(74, 123, 166, 0.05), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.serif { font-family: 'Cormorant Garamond', serif; font-weight: 500; letter-spacing: -0.01em; }
+.mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+/* ========== TOP BAR ========== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 14, 20, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.topbar-title em {
+  color: var(--gold);
+  font-style: italic;
+}
+
+.countdown-pill {
+  background: var(--gold-dim);
+  border: 1px solid var(--border-hi);
+  color: var(--gold-soft);
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Progress strip */
+.progress-strip {
+  height: 2px;
+  background: rgba(212, 169, 90, 0.08);
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--sunset) 100%);
+  width: 0%;
+  transition: width 0.6s ease;
+}
+
+/* ========== MAIN ========== */
+main {
+  position: relative;
+  z-index: 1;
+  padding: 0 18px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+section { margin: 40px 0; scroll-margin-top: 70px; }
+
+.section-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.1;
+  margin-bottom: 18px;
+  letter-spacing: -0.01em;
+}
+
+.section-title em { color: var(--gold); font-style: italic; }
+
+/* ========== HERO ========== */
+.hero {
+  padding: 44px 0 20px;
+  text-align: left;
+  position: relative;
+}
+
+.hero-kicker {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 22px;
+  font-weight: 500;
+}
+
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 56px;
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
+.hero-title .line2 {
+  display: block;
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 460px;
+  margin-bottom: 28px;
+}
+
+.hero-meta {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+  margin-bottom: 20px;
+}
+
+.meta-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.meta-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.meta-value.small { font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+
+.destination-card {
+  background: linear-gradient(135deg, rgba(212, 169, 90, 0.08), rgba(224, 120, 86, 0.05));
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.destination-card .label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.destination-card .place {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.destination-card .addr {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cta-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background: var(--gold);
+  color: #1a1410;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:hover { background: var(--gold-soft); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-hi);
+}
+.btn-ghost:hover { background: var(--gold-dim); }
+
+/* ========== TRIP SUMMARY ========== */
+.trip-summary {
+  background: linear-gradient(135deg, rgba(212,169,90,0.06) 0%, rgba(224,120,86,0.04) 100%);
+  border: 1px solid rgba(212,169,90,0.2);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px 18px;
+  margin-bottom: 28px;
+}
+.ts-route {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ts-endpoint { min-width: 0; }
+.ts-endpoint.end { text-align: right; }
+.ts-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.ts-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-style: italic;
+  color: var(--gold-soft);
+  line-height: 1.05;
+  font-weight: 500;
+}
+.ts-endpoint.end .ts-value { color: var(--sunset); }
+.ts-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+.ts-arrow {
+  color: var(--gold);
+  font-size: 20px;
+  opacity: 0.5;
+}
+.ts-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.ts-stat { text-align: center; }
+.ts-stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.ts-stat-unit {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ========== JOURNEY FLOW ========== */
+.journey-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.journey-flow::-webkit-scrollbar { display: none; }
+.flow-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+.flow-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.flow-val {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.flow-item.now .flow-val { color: var(--sage); }
+.flow-item.charge .flow-val { color: var(--aegean-soft); }
+.flow-item.sleep .flow-val { color: var(--gold-soft); }
+.flow-sep {
+  color: var(--border-hi);
+  font-size: 11px;
+  flex-shrink: 0;
+  padding: 0 2px;
+  margin-top: 10px;
+}
+
+/* ========== LIVE TRIP MODE ========== */
+.live-mode {
+  background: linear-gradient(160deg, #0f1520 0%, #1a1410 100%);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  margin: 28px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.live-mode::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--sunset), var(--aegean));
+}
+
+.live-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.live-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--sage);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(143, 181, 143, 0.5);
+  animation: pulse 2s infinite;
+  display: inline-block;
+  margin-right: 6px;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(143, 181, 143, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(143, 181, 143, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(143, 181, 143, 0); }
+}
+
+.live-dot.idle { background: var(--text-dim); animation: none; }
+
+.live-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.live-stat {
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.live-stat-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.live-stat-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--gold-soft);
+}
+
+.live-stat-value .unit {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  margin-left: 3px;
+}
+
+.live-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.live-action {
+  background: rgba(212, 169, 90, 0.1);
+  border: 1px solid var(--border-hi);
+  color: var(--gold-soft);
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.live-action:hover { background: rgba(212, 169, 90, 0.2); }
+
+/* ========== MAP ========== */
+.map-wrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+  background: var(--bg-elev);
+}
+
+#map {
+  height: 420px;
+  width: 100%;
+  background: #0d1319;
+}
+
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 8px 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.leaflet-container {
+  font-family: 'DM Sans', sans-serif;
+  background: #0d1319 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card-hi);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-hi);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.leaflet-popup-content b {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--gold-soft);
+  display: block;
+  margin-bottom: 3px;
+}
+.leaflet-popup-tip { background: var(--bg-card-hi) !important; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--text-dim) !important; }
+.leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: var(--text-dim) !important; font-size: 10px !important; }
+.leaflet-control-attribution a { color: var(--text-muted) !important; }
+.leaflet-control-zoom a {
+  background: var(--bg-card-hi) !important;
+  color: var(--text) !important;
+  border-color: var(--border-hi) !important;
+}
+
+/* ========== STAGE CARDS ========== */
+.stages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stage {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position: relative;
+  transition: all 0.25s;
+}
+
+.stage:hover, .stage.active {
+  border-color: var(--border-hi);
+  background: var(--bg-card-hi);
+}
+
+.stage.active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 16px; bottom: 16px;
+  width: 3px;
+  background: var(--gold);
+  border-radius: 0 2px 2px 0;
+}
+
+.stage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.stage-day {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.stage-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stage-route {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.stage-route .arrow { color: var(--gold); margin: 0 8px; font-style: italic; }
+
+.stage-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.stage-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stage-tag::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+.stage-note {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ========== GENERIC CARD ========== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ========== TESLA CHARGING ========== */
+.charge-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.charge-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  position: relative;
+}
+
+.charge-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.charge-city {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.charge-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.charge-soc {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.soc-pill {
+  background: rgba(74, 123, 166, 0.15);
+  border: 1px solid rgba(74, 123, 166, 0.3);
+  color: var(--aegean-soft);
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-weight: 500;
+}
+.soc-pill.out { background: rgba(143, 181, 143, 0.12); border-color: rgba(143, 181, 143, 0.3); color: var(--sage); }
+
+/* ========== HOTEL BADGES ========== */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.badge {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  background: var(--gold-dim);
+  color: var(--gold-soft);
+  padding: 4px 9px;
+  border-radius: 100px;
+  font-weight: 500;
+}
+
+/* ========== CAT PANEL ========== */
+.cat-panel {
+  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(212, 169, 90, 0.04) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.cat-trackers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tracker {
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.tracker-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.tracker-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  margin-bottom: 6px;
+  min-height: 20px;
+}
+
+.tracker-btn {
+  background: transparent;
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.tracker-btn:hover { background: var(--gold-dim); }
+
+.cat-warning {
+  background: var(--danger-bg);
+  border: 1px solid rgba(212, 107, 90, 0.3);
+  color: #e88f7e;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
+.cat-warning strong { color: var(--danger); font-weight: 500; }
+
+/* ========== EMERGENCY ========== */
+.emergency {
+  background: linear-gradient(160deg, rgba(212, 107, 90, 0.08) 0%, rgba(10, 14, 20, 1) 100%);
+  border: 1px solid rgba(212, 107, 90, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.emergency::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--danger);
+}
+
+.emergency-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.emergency-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.call-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.call-btn {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  text-decoration: none;
+  color: var(--text);
+  display: block;
+  transition: all 0.2s;
+}
+
+.call-btn:hover { background: rgba(212, 169, 90, 0.08); }
+
+.call-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
+.call-number {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gold-soft);
+}
+
+.emergency-steps {
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.step:last-child { border-bottom: none; }
+
+.step-num {
+  background: var(--gold);
+  color: #1a1410;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ========== BUDGET CALCULATOR ========== */
+.budget-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--border);
+  border-radius: 100px;
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.slider-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  min-width: 90px;
+  text-align: right;
+}
+
+.budget-totals {
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.total-row .val { color: var(--text); }
+
+.total-final {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.total-final .label {
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.total-final .val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--gold);
+  font-style: italic;
+}
+
+.scenarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.scenario-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.scenario-btn:hover { border-color: var(--border-hi); color: var(--text); }
+.scenario-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+.scenario-btn .name { font-weight: 500; display: block; margin-bottom: 2px; }
+.scenario-btn .range { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic; }
+
+/* ========== CHECKLIST ========== */
+.checklist {
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+  cursor: pointer;
+  align-items: flex-start;
+  transition: all 0.2s;
+}
+
+.checklist li:last-child { border-bottom: none; }
+
+.check-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-hi);
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.checklist li.done .check-box {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.checklist li.done .check-box::after {
+  content: "";
+  position: absolute;
+  left: 4px; top: 1px;
+  width: 5px; height: 10px;
+  border: solid #1a1410;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.check-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text);
+  flex: 1;
+}
+
+.checklist li.done .check-text {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.checklist-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.checklist-progress {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========== MODE SWITCHER ========== */
+.mode-switcher {
+  position: sticky;
+  top: 48px;
+  z-index: 98;
+  background: rgba(10, 14, 20, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 10px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s;
+}
+.mode-btn:hover { color: var(--text); }
+.mode-btn .emoji { font-size: 14px; }
+
+.mode-btn.dit.active {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--sunset) 100%);
+  color: #0a0e14;
+  box-shadow: 0 3px 12px rgba(212, 169, 90, 0.25);
+}
+.mode-btn.hem.active {
+  background: linear-gradient(135deg, var(--aegean) 0%, var(--gold-soft) 100%);
+  color: #0a0e14;
+  box-shadow: 0 3px 12px rgba(74, 123, 166, 0.3);
+}
+
+/* Stage card emphasis based on mode */
+.stage {
+  transition: opacity 0.4s, filter 0.4s, transform 0.4s;
+  transform-origin: left center;
+}
+
+body.mode-dit .stage[data-phase="back"] {
+  opacity: 0.28;
+  filter: grayscale(0.6);
+}
+body.mode-hem .stage[data-phase="down"] {
+  opacity: 0.28;
+  filter: grayscale(0.6);
+}
+body.mode-dit .stage[data-phase="back"]:hover,
+body.mode-hem .stage[data-phase="down"]:hover {
+  opacity: 0.55;
+  filter: grayscale(0.3);
+}
+
+/* Phase separator */
+.phase-sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+}
+.phase-sep::before, .phase-sep::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-hi), transparent);
+}
+
+/* ========== VIGNETTE GRID ========== */
+.vignette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.vignette-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vignette-price {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.vignette-price strong {
+  color: var(--gold-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  margin-right: 4px;
+  font-weight: 500;
+}
+.vignette-price .sub {
+  display: block;
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.buy-link {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-hi);
+  color: var(--gold-soft);
+  padding: 10px 14px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s;
+}
+.buy-link:hover { background: rgba(212, 169, 90, 0.22); color: var(--gold); transform: translateY(-1px); }
+.buy-link .arr { font-size: 14px; }
+.buy-link-text { display: flex; flex-direction: column; line-height: 1.2; }
+.buy-link .dom {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+.vignette-warning {
+  background: rgba(212, 107, 90, 0.08);
+  border: 1px solid rgba(212, 107, 90, 0.25);
+  border-left: 3px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.vignette-warning strong { color: var(--danger); font-weight: 500; }
+
+.vignette-flag {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.vignette-country {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.vignette-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ========== BOTTOM NAV ========== */
+.bottom-nav {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: rgba(15, 21, 32, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-hi);
+  border-radius: 100px;
+  padding: 8px 10px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover { color: var(--text); }
+.nav-btn.active { background: var(--gold); color: #1a1410; }
+
+/* ========== FINAL RECOMMENDATION ========== */
+.final-rec {
+  background: linear-gradient(160deg, rgba(212, 169, 90, 0.08), rgba(74, 123, 166, 0.04));
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  padding: 28px 22px;
+  margin: 40px 0 20px;
+  text-align: center;
+}
+
+.final-rec .label {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.final-rec .quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--text);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.final-rec .quote em { color: var(--gold); font-style: normal; font-weight: 500; }
+
+/* ========== FOOTER ========== */
+footer {
+  text-align: center;
+  padding: 30px 20px 100px;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mode-btn .lbl-short { display: none; }
+
+@media (max-width: 440px) {
+  .mode-btn .lbl-full { display: none; }
+  .mode-btn .lbl-short { display: inline; }
+}
+
+/* ========== GOOGLE MAPS ACTIONS ========== */
+.gmaps-panel {
+  background: linear-gradient(135deg, rgba(66,133,244,0.08) 0%, rgba(52,168,83,0.06) 100%);
+  border: 1px solid rgba(66,133,244,0.25);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin: 14px 0 20px;
+}
+.gmaps-panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  color: var(--text);
+  font-style: italic;
+  margin-bottom: 4px;
+}
+.gmaps-panel-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+.gmaps-btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.gmaps-btn {
+  flex: 1;
+  min-width: 140px;
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  color: white;
+  border: none;
+  padding: 12px 14px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(66,133,244,0.25);
+}
+.gmaps-btn:hover, .gmaps-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(66,133,244,0.35);
+}
+.gmaps-btn.secondary {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border: 1px solid var(--border-hi);
+  box-shadow: none;
+}
+.gmaps-btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(66,133,244,0.1);
+  color: #7eb0ff;
+  border: 1px solid rgba(66,133,244,0.25);
+  padding: 6px 12px;
+  border-radius: 100px;
+  font-size: 11px;
+  text-decoration: none;
+  font-weight: 500;
+  margin-top: 10px;
+  transition: background 0.15s;
+}
+.gmaps-btn-sm:hover { background: rgba(66,133,244,0.18); }
+
+body.mode-hem .gmaps-btn.dit-only,
+body.mode-dit .gmaps-btn.hem-only { display: none; }
+
+/* ========== SCHEDULE TIMELINE ========== */
+.schedule-toggle {
+  display: inline-flex;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 3px;
+  margin-bottom: 14px;
+  gap: 2px;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+
+.sched-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.25s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sched-tab:hover { color: var(--text); }
+.sched-tab .tag {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.sched-tab.active {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--sunset) 100%);
+  color: #0a0e14;
+  box-shadow: 0 3px 10px rgba(212, 169, 90, 0.25);
+}
+.sched-tab.active .tag { opacity: 0.8; }
+
+.schedule-day {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px 14px;
+  margin-bottom: 12px;
+  transition: opacity 0.4s, filter 0.4s;
+}
+
+body.mode-dit .schedule-day[data-phase="back"],
+body.mode-hem .schedule-day[data-phase="down"] {
+  opacity: 0.3;
+  filter: grayscale(0.6);
+}
+
+.schedule-day-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.schedule-day-head .day-badge {
+  background: var(--gold-dim);
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-weight: 500;
+  border: 1px solid var(--border-hi);
+}
+.schedule-day-head .day-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+}
+.schedule-day-head .day-km {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 18px;
+}
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--border-hi), var(--border));
+}
+
+.tl-stop {
+  position: relative;
+  padding: 8px 0 10px;
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+.tl-stop::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 13px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  box-sizing: border-box;
+}
+.tl-stop.start::before,
+.tl-stop.dest::before { background: var(--gold); border-color: var(--gold); }
+.tl-stop.charge::before { background: var(--bg-card); border-color: var(--aegean-soft); }
+.tl-stop.hotel::before { background: var(--sage); border-color: var(--sage); }
+.tl-stop.dest::before {
+  background: var(--sunset);
+  border-color: var(--sunset);
+  box-shadow: 0 0 0 2px rgba(224, 120, 86, 0.25);
+  width: 11px; height: 11px;
+  left: -19px;
+}
+.tl-stop.border::before { background: transparent; border-color: var(--gold-soft); border-style: dashed; }
+
+.tl-time {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  color: var(--gold-soft);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-body { line-height: 1.35; }
+
+.tl-place {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+.tl-stop.dest .tl-place {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--sunset);
+}
+.tl-stop.start .tl-place {
+  color: var(--gold-soft);
+}
+
+.tl-km {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.tl-note .soc {
+  color: var(--gold-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.schedule-disclaimer {
+  background: rgba(74, 123, 166, 0.06);
+  border: 1px solid rgba(74, 123, 166, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.schedule-disclaimer strong { color: var(--aegean-soft); }
+
+/* ========== COUNTRY ASSISTANT ========== */
+.country-panel {
+  background: linear-gradient(160deg, #0f1825 0%, #161f2f 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.country-panel::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--aegean), var(--gold));
+}
+
+.country-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.panel-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.current-country, .next-country {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.current-country .flag, .next-country .flag { font-size: 28px; line-height: 1; }
+
+.current-country .country-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  line-height: 1.1;
+}
+
+.next-country { justify-content: flex-end; }
+.next-country .country-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.1;
+}
+.next-country .flag { font-size: 22px; opacity: 0.85; }
+
+.border-bar {
+  position: relative;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 100px;
+  height: 34px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.border-progress {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--aegean) 0%, var(--gold) 100%);
+  transition: width 0.8s ease;
+  opacity: 0.3;
+}
+
+.border-distance {
+  position: relative;
+  z-index: 2;
+  padding: 0 14px;
+  font-size: 12px;
+  color: var(--text);
+  text-align: center;
+  width: 100%;
+  letter-spacing: 0.02em;
+}
+.border-distance strong {
+  color: var(--gold-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 500;
+  margin: 0 3px;
+}
+
+.prep-box {
+  background: rgba(212, 169, 90, 0.08);
+  border: 1px solid var(--border-hi);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+}
+
+.prep-box .prep-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.prep-box .prep-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.quick-next {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.quick-next-item {
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.quick-next-item .qn-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
+.quick-next-item .qn-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  line-height: 1.2;
+}
+
+.country-details {
+  display: none;
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.country-details.open { display: block; }
+
+.detail-row {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.detail-row:last-child { border-bottom: none; }
+
+.detail-label {
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.detail-value {
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.detail-value ul { margin-top: 4px; padding-left: 18px; }
+.detail-value ul li { margin-bottom: 3px; font-size: 12px; color: var(--text-muted); }
+
+.expand-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+  width: 100%;
+}
+.expand-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+.manual-country {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.country-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.country-btn {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 10px;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.country-btn:hover { color: var(--text); border-color: var(--border-hi); }
+.country-btn.active {
+  background: var(--gold);
+  color: #1a1410;
+  border-color: var(--gold);
+}
+.country-btn .mini-flag { font-size: 14px; }
+
+.direction-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 100px;
+  padding: 3px;
+  margin-top: 10px;
+}
+
+.direction-toggle button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.direction-toggle button.active {
+  background: var(--gold-dim);
+  color: var(--gold-soft);
+}
+
+/* ========== SPEED COMPARISON ========== */
+.speed-slider-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px 14px;
+  margin-bottom: 12px;
+}
+
+.speed-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--border);
+  border-radius: 100px;
+  outline: none;
+}
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px; height: 24px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.speed-slider::-moz-range-thumb {
+  width: 24px; height: 24px;
+  background: var(--gold);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.speed-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+.speed-labels span { flex: 1; text-align: center; }
+.speed-labels span:first-child { text-align: left; }
+.speed-labels span:last-child { text-align: right; }
+
+.speed-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.speed-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 16px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.speed-card:hover { border-color: var(--border-hi); transform: translateY(-1px); }
+.speed-card.active { background: var(--bg-card-hi); }
+
+.speed-card .kmh {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+
+.speed-card .kmh-unit {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-left: 3px;
+}
+
+.speed-card .stats-row {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.speed-card .stat { flex: 1; }
+
+.speed-card .stat-label {
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 9px;
+  margin-bottom: 2px;
+}
+
+.speed-card .stat-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.speed-card .note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.speed-card .delta {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 10px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.speed-card .delta .plus { color: var(--danger); }
+.speed-card .delta .minus { color: var(--sage); }
+.speed-card .delta .zero { color: var(--text-dim); }
+
+.speed-card .corner-badge {
+  position: absolute;
+  top: 0; right: 14px;
+  font-size: 9px;
+  padding: 3px 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 0 0 6px 6px;
+}
+
+.speed-card.rec .corner-badge { background: var(--sage); color: #0a0e14; }
+.speed-card.warn .corner-badge { background: var(--danger); color: #fff; }
+
+.speed-card.rec {
+  border-color: rgba(143, 181, 143, 0.4);
+  background: linear-gradient(160deg, rgba(143, 181, 143, 0.05), transparent);
+}
+.speed-card.rec.active {
+  border-color: var(--sage);
+  background: linear-gradient(160deg, rgba(143, 181, 143, 0.12), rgba(143, 181, 143, 0.03));
+}
+.speed-card.rec .kmh { color: var(--sage); }
+
+.speed-card.warn {
+  border-color: rgba(212, 107, 90, 0.3);
+  background: linear-gradient(160deg, rgba(212, 107, 90, 0.03), transparent);
+}
+.speed-card.warn.active {
+  border-color: var(--danger);
+  background: linear-gradient(160deg, rgba(212, 107, 90, 0.1), rgba(212, 107, 90, 0.02));
+}
+.speed-card.warn .kmh { color: var(--danger); }
+
+.speed-card.mid .kmh { color: var(--gold); }
+.speed-card.cold .kmh { color: var(--aegean-soft); }
+
+.speed-summary {
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: all 0.3s;
+}
+
+.speed-summary .headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-style: italic;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.speed-summary .body {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.speed-summary.sage { border-color: rgba(143,181,143,0.4); background: linear-gradient(160deg, rgba(143,181,143,0.06), transparent); }
+.speed-summary.sage .headline { color: var(--sage); }
+
+.speed-summary.danger { border-color: rgba(212,107,90,0.4); background: linear-gradient(160deg, rgba(212,107,90,0.06), transparent); }
+.speed-summary.danger .headline { color: var(--danger); }
+
+.speed-summary.gold { border-color: var(--border-hi); }
+.speed-summary.gold .headline { color: var(--gold-soft); }
+
+.speed-summary.aegean { border-color: rgba(74,123,166,0.4); background: linear-gradient(160deg, rgba(74,123,166,0.05), transparent); }
+.speed-summary.aegean .headline { color: var(--aegean-soft); }
+
+/* ========== LOGIN GATE ========== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.login-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 30%, rgba(212, 169, 90, 0.08), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 80%, rgba(74, 123, 166, 0.06), transparent 60%);
+  pointer-events: none;
+}
+
+.login-box {
+  max-width: 380px;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px 28px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.login-box::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--sunset), var(--aegean));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.login-kicker {
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+.login-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+.login-logo em { color: var(--gold); font-style: italic; }
+
+.login-sub {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.login-field {
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.login-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  outline: none;
+  transition: all 0.2s;
+  -webkit-appearance: none;
+}
+
+.login-input:focus { border-color: var(--gold); background: var(--bg-card-hi); }
+
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  justify-content: flex-start;
+}
+
+.login-remember input {
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.login-error {
+  background: rgba(212, 107, 90, 0.12);
+  border: 1px solid rgba(212, 107, 90, 0.35);
+  color: #e88f7e;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-bottom: 14px;
+  display: none;
+  text-align: center;
+}
+.login-error.show { display: block; animation: shakeErr 0.3s; }
+
+@keyframes shakeErr {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.login-btn {
+  width: 100%;
+  background: var(--gold);
+  color: #1a1410;
+  border: none;
+  padding: 14px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.login-btn:hover { background: var(--gold-soft); transform: translateY(-1px); }
+.login-btn:active { transform: translateY(0); }
+
+.login-footer {
+  margin-top: 24px;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.logout-link {
+  display: inline-block;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-decoration: none;
+  padding: 6px 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.logout-link:hover { color: var(--text-muted); background: rgba(255,255,255,0.03); }
+
+body.locked { overflow: hidden; height: 100vh; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+  main { padding: 0 16px; }
+  .topbar { padding: 10px 14px; }
+  .topbar-title { font-size: 15px; }
+  .countdown-pill { font-size: 10px; padding: 5px 10px; letter-spacing: 0.02em; }
+  .mode-switcher { padding: 8px 12px 10px; top: 44px; }
+  .mode-btn { padding: 7px 13px; font-size: 11px; }
+  .hero-title { font-size: 44px; }
+  .section-title { font-size: 26px; }
+  .hero-meta { grid-template-columns: 1fr 1fr; gap: 14px 12px; padding: 16px; }
+  .live-stats { grid-template-columns: 1fr 1fr; }
+  .cat-trackers { grid-template-columns: 1fr 1fr; }
+  .slider-label { min-width: 95px; font-size: 11px; }
+  .slider-value { font-size: 14px; min-width: 70px; }
+  #map { height: 360px; }
+  .bottom-nav { padding: 6px 8px; }
+  .nav-btn { padding: 7px 12px; font-size: 11px; }
+  .country-header { gap: 8px; }
+  .current-country .country-name { font-size: 20px; }
+  .next-country .country-name { font-size: 16px; }
+  .speed-cards { grid-template-columns: 1fr; }
+  .vignette-grid { grid-template-columns: 1fr; }
+  .schedule-day { padding: 14px 14px 10px; }
+  .schedule-day-head .day-title { font-size: 17px; }
+  .schedule-day-head .day-badge { font-size: 9px; padding: 3px 8px; letter-spacing: 0.15em; }
+  .tl-stop { grid-template-columns: 54px 1fr; gap: 8px; padding: 6px 0 8px; }
+  .tl-time { font-size: 12px; }
+  .tl-place { font-size: 13px; }
+  .tl-stop.dest .tl-place { font-size: 15px; }
+  .tl-km { font-size: 10px; margin-left: 4px; }
+  .tl-note { font-size: 11px; line-height: 1.4; }
+  .schedule-toggle { width: 100%; justify-content: space-between; }
+  .sched-tab { padding: 7px 10px; font-size: 10px; flex: 1; justify-content: center; }
+  .sched-tab .tag { font-size: 8px; }
+  .schedule-disclaimer { font-size: 11px; padding: 10px 12px; }
+
+  /* Trip summary + journey flow on mobile */
+  .trip-summary { padding: 16px 16px 14px; margin-bottom: 22px; }
+  .ts-value { font-size: 22px; }
+  .ts-sub { font-size: 10px; }
+  .ts-label { font-size: 8px; letter-spacing: 0.18em; }
+  .ts-stats { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .ts-stat-num { font-size: 17px; }
+  .ts-stat-unit { font-size: 8px; letter-spacing: 0.12em; }
+  .journey-flow { padding: 12px 14px; }
+  .flow-label { font-size: 8px; letter-spacing: 0.18em; }
+  .flow-val { font-size: 11px; }
+  .flow-sep { font-size: 10px; }
+}
+
+@media (max-width: 360px) {
+  .hero-title { font-size: 38px; }
+  .stage-info { grid-template-columns: 1fr; }
+}
+
+/* Custom map marker pulse */
+.pulse-marker {
+  width: 16px;
+  height: 16px;
+  background: var(--sage);
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 0 rgba(143, 181, 143, 0.7);
+  animation: mapPulse 2s infinite;
+}
+@keyframes mapPulse {
+  0% { box-shadow: 0 0 0 0 rgba(143, 181, 143, 0.7); }
+  70% { box-shadow: 0 0 0 14px rgba(143, 181, 143, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(143, 181, 143, 0); }
+}
+
+.gold-marker {
+  width: 14px; height: 14px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 2px solid #1a1410;
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+.aegean-marker {
+  width: 12px; height: 12px;
+  background: var(--aegean-soft);
+  border-radius: 50%;
+  border: 2px solid #0d1319;
+}
+
+.dest-marker {
+  width: 18px; height: 18px;
+  background: var(--sunset);
+  border-radius: 50%;
+  border: 3px solid #1a1410;
+  box-shadow: 0 0 0 2px var(--sunset), 0 0 16px var(--sunset);
+}
+
+/* ========== COUNTRY ASSISTANT ========== */
+.country-panel {
+  background: linear-gradient(160deg, var(--bg-card) 0%, rgba(74, 123, 166, 0.06) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.country-panel::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, var(--aegean), var(--gold), var(--sunset));
+}
+
+.country-current, .country-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.country-flag {
+  font-size: 40px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+  margin-bottom: 4px;
+}
+
+.country-flag.pulse {
+  animation: flagPulse 2.5s ease-in-out infinite;
+}
+@keyframes flagPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.country-label-sm {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.country-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  line-height: 1.1;
+}
+
+.country-transition {
+  text-align: center;
+  padding: 0 4px;
+  min-width: 80px;
+}
+
+.transition-arrow {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  color: var(--gold);
+  font-style: italic;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.transition-dist {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  color: var(--text);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.transition-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.prep-card {
+  background: rgba(212, 169, 90, 0.07);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.prep-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.prep-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.prep-list li {
+  padding: 7px 0 7px 20px;
+  position: relative;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.prep-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 13px;
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+
+.prep-list li.warn::before { background: var(--danger); box-shadow: 0 0 0 3px rgba(212,107,90,0.15); }
+.prep-list li.warn { color: #e88f7e; }
+
+.country-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.country-mini {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+}
+
+.country-mini .label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.country-mini .value {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.country-mini.full { grid-column: 1 / -1; }
+
+.stage-select-wrap { margin-top: 12px; }
+
+.stage-select-wrap .label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.stage-select {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.stage-select:focus { outline: none; border-color: var(--gold); }
+
+/* ========== SPEED SECTION ========== */
+.speed-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.speed-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 16px 6px 12px;
+  border-radius: var(--radius);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  line-height: 1;
+}
+
+.speed-btn:hover { border-color: var(--border-hi); }
+
+.speed-btn small {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.speed-btn.active {
+  background: var(--gold);
+  color: #1a1410;
+  border-color: var(--gold);
+}
+
+.speed-btn.active small { color: rgba(26,20,16,0.7); }
+
+.speed-btn.recommended::after {
+  content: "★";
+  position: absolute;
+  top: 5px; right: 7px;
+  font-size: 10px;
+  color: var(--sage);
+}
+
+.speed-btn.active.recommended::after { color: #1a1410; }
+
+.speed-btn.danger {
+  border-color: rgba(212, 107, 90, 0.35);
+  color: var(--danger);
+}
+
+.speed-btn.danger::after {
+  content: "!";
+  position: absolute;
+  top: 4px; right: 7px;
+  font-size: 11px;
+  color: var(--danger);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+
+.speed-btn.active.danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.speed-btn.active.danger::after { color: #fff; }
+.speed-btn.active.danger small { color: rgba(255,255,255,0.7); }
+
+.speed-display {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 22px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: all 0.4s ease;
+}
+
+.speed-display::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--sage);
+  transition: background 0.4s;
+}
+
+.speed-display.ok::before { background: var(--sage); }
+.speed-display.neutral::before { background: var(--gold); }
+.speed-display.warn::before { background: var(--sunset); }
+.speed-display.bad::before { background: var(--danger); }
+
+.speed-display-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.speed-big {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  font-style: italic;
+}
+
+.speed-big .unit {
+  font-size: 20px;
+  color: var(--text-muted);
+  font-style: normal;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  margin-left: 2px;
+  letter-spacing: -0.01em;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-pill.ok { background: rgba(143, 181, 143, 0.15); border: 1px solid rgba(143, 181, 143, 0.4); color: var(--sage); }
+.status-pill.neutral { background: var(--gold-dim); border: 1px solid var(--border-hi); color: var(--gold-soft); }
+.status-pill.warn { background: rgba(224, 120, 86, 0.12); border: 1px solid rgba(224, 120, 86, 0.35); color: var(--sunset); }
+.status-pill.bad { background: var(--danger-bg); border: 1px solid rgba(212, 107, 90, 0.4); color: var(--danger); }
+
+.speed-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 20px 0 16px;
+}
+
+.speed-stat {
+  background: rgba(0,0,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.speed-stat .label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.speed-stat .value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--gold-soft);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.speed-delta {
+  padding: 11px 14px;
+  background: rgba(0,0,0,0.22);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.speed-delta .tag { font-weight: 500; color: var(--sage); }
+.speed-delta .tag.neg { color: var(--sunset); }
+
+.speed-reco {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(143, 181, 143, 0.1), transparent);
+  border-left: 3px solid var(--sage);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.speed-reco.warn {
+  background: linear-gradient(135deg, rgba(224, 120, 86, 0.1), transparent);
+  border-left-color: var(--sunset);
+}
+
+.speed-reco.bad {
+  background: linear-gradient(135deg, rgba(212, 107, 90, 0.12), transparent);
+  border-left-color: var(--danger);
+}
+
+.speed-reco.neutral {
+  background: linear-gradient(135deg, rgba(212, 169, 90, 0.08), transparent);
+  border-left-color: var(--gold);
+}
+
+.speed-warning {
+  background: var(--danger-bg);
+  border: 1px solid rgba(212, 107, 90, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e88f7e;
+}
+
+.speed-warning strong { color: var(--danger); font-weight: 500; }
+
+@media (max-width: 420px) {
+  .country-panel { padding: 18px 12px; gap: 6px; }
+  .country-flag { font-size: 34px; }
+  .country-name { font-size: 17px; }
+  .transition-dist { font-size: 13px; }
+  .country-mini-grid { grid-template-columns: 1fr; }
+  .speed-big { font-size: 44px; }
+  .speed-stat .value { font-size: 19px; }
+  .speed-btn { font-size: 20px; padding: 14px 4px 10px; }
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- ============================================================== -->
+<!-- LOGIN GATE -->
+<!-- ============================================================== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-kicker">Privat familjesida</div>
+    <div class="login-logo">Hellas <em>2026</em></div>
+    <p class="login-sub">Ange lösen­ordet för att komma åt resplanen.</p>
+
+    <div class="login-field">
+      <label class="login-label" for="loginInput">Lösenord</label>
+      <input type="password" class="login-input" id="loginInput" autocomplete="current-password" autofocus>
+    </div>
+
+    <label class="login-remember">
+      <input type="checkbox" id="rememberMe" checked>
+      <span>Kom ihåg mig på den här enheten</span>
+    </label>
+
+    <div class="login-error" id="loginError">Fel lösenord. Försök igen.</div>
+
+    <button class="login-btn" id="loginBtn">Logga in</button>
+
+    <div class="login-footer">Amiridis · sommar 2026</div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- TOP BAR -->
+<!-- ============================================================== -->
+<div class="topbar">
+  <div class="topbar-title">Roadtrip <em>Hellas</em> 2026</div>
+  <div class="countdown-pill" id="countdown">Laddar…</div>
+</div>
+<div class="progress-strip"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="mode-switcher">
+  <div class="mode-toggle">
+    <button class="mode-btn dit active" data-mode="dit">
+      <span class="emoji">🏖️</span> <span class="lbl-full">Vägen till semester</span><span class="lbl-short">Till semester</span>
+    </button>
+    <button class="mode-btn hem" data-mode="hem">
+      <span class="emoji">🏡</span> <span class="lbl-full">Hemresa</span><span class="lbl-short">Hem</span>
+    </button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ============================================================== -->
+  <!-- HERO -->
+  <!-- ============================================================== -->
+  <section class="hero" id="top">
+    <div class="hero-kicker">Sommar 2026 · 3 230 km · Tesla Model Y</div>
+    <h1 class="hero-title">
+      Roadtrip till<br>
+      <span class="line2">Grekland</span>
+    </h1>
+    <p class="hero-sub">Från Spånga till Trikorfo Beach på Chalkidiki. 3 kördagar ner, 3 hem, 23 dagar vid havet emellan. EU-rutt via Rumänien och Bulgarien.</p>
+
+    <div class="destination-card">
+      <div class="label">Slutmål</div>
+      <div class="place">Trikorfo Beach</div>
+      <div class="addr">Trikorfo, Gerakini 631 00, Grekland</div>
+    </div>
+
+    <div class="hero-meta">
+      <div>
+        <div class="meta-label">Avresa</div>
+        <div class="meta-value">Fre 17 juli<br><span style="font-size:13px;color:var(--text-muted);font-family:'DM Sans';font-weight:400">kl 19:00</span></div>
+      </div>
+      <div>
+        <div class="meta-label">Hemresa</div>
+        <div class="meta-value">Ons 12 aug<br><span style="font-size:13px;color:var(--text-muted);font-family:'DM Sans';font-weight:400">hemma 14 aug</span></div>
+      </div>
+      <div>
+        <div class="meta-label">Sällskap</div>
+        <div class="meta-value small">2 vuxna, 2 barn<br>1 katt</div>
+      </div>
+      <div>
+        <div class="meta-label">Bil</div>
+        <div class="meta-value small">Tesla Model Y<br>Performance 2024</div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn" onclick="document.getElementById('live').scrollIntoView({behavior:'smooth'})">Resläge</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('map-section').scrollIntoView({behavior:'smooth'})">Se karta</button>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- TRIP SUMMARY (överblick på några sekunder) -->
+  <!-- ============================================================== -->
+  <section id="trip-summary">
+    <div class="trip-summary">
+      <div class="ts-route">
+        <div class="ts-endpoint">
+          <div class="ts-label">Start</div>
+          <div class="ts-value">Spånga</div>
+          <div class="ts-sub">Höglindavägen 2B</div>
+        </div>
+        <div class="ts-arrow">→</div>
+        <div class="ts-endpoint end">
+          <div class="ts-label">Slutmål</div>
+          <div class="ts-value">Trikorfo Beach</div>
+          <div class="ts-sub">Gerakini 631 00, Chalkidiki</div>
+        </div>
+      </div>
+      <div class="ts-stats">
+        <div class="ts-stat">
+          <div class="ts-stat-num">6 460</div>
+          <div class="ts-stat-unit">km t/r</div>
+        </div>
+        <div class="ts-stat">
+          <div class="ts-stat-num">3+3</div>
+          <div class="ts-stat-unit">kördagar</div>
+        </div>
+        <div class="ts-stat">
+          <div class="ts-stat-num">4</div>
+          <div class="ts-stat-unit">hotell­nätter</div>
+        </div>
+        <div class="ts-stat">
+          <div class="ts-stat-num">120</div>
+          <div class="ts-stat-unit">km/h rek.</div>
+        </div>
+        <div class="ts-stat">
+          <div class="ts-stat-num">~14 k</div>
+          <div class="ts-stat-unit">kr totalt</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- LIVE TRIP MODE -->
+  <!-- ============================================================== -->
+  <section id="live">
+    <div class="live-mode">
+      <div class="live-header">
+        <div class="live-title">Resläge <em style="font-style:italic;color:var(--text-muted);font-size:13px;font-family:'Cormorant Garamond',serif;margin-left:6px">cockpit</em></div>
+        <div><span class="live-dot idle" id="gpsDot"></span><span style="font-size:11px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase" id="gpsStatus">GPS av</span></div>
+      </div>
+
+      <!-- Journey flow breadcrumb -->
+      <div class="journey-flow" id="journeyFlow">
+        <div class="flow-item now">
+          <div class="flow-label">Nu</div>
+          <div class="flow-val" id="flowNow">🇸🇪 Sverige</div>
+        </div>
+        <div class="flow-sep">→</div>
+        <div class="flow-item">
+          <div class="flow-label">Nästa</div>
+          <div class="flow-val" id="flowNext">🇩🇰 Danmark</div>
+        </div>
+        <div class="flow-sep">→</div>
+        <div class="flow-item charge">
+          <div class="flow-label">Ladda</div>
+          <div class="flow-val" id="flowCharge">Malmö SC</div>
+        </div>
+        <div class="flow-sep">→</div>
+        <div class="flow-item sleep">
+          <div class="flow-label">Sov</div>
+          <div class="flow-val" id="flowSleep">Brno</div>
+        </div>
+      </div>
+
+      <div class="live-stats">
+        <div class="live-stat">
+          <div class="live-stat-label">Position</div>
+          <div class="live-stat-value" id="livePos">—</div>
+        </div>
+        <div class="live-stat">
+          <div class="live-stat-label">Nästa stad</div>
+          <div class="live-stat-value" id="liveNext">—</div>
+        </div>
+        <div class="live-stat">
+          <div class="live-stat-label">Nästa laddning</div>
+          <div class="live-stat-value" id="liveCharge">—</div>
+        </div>
+        <div class="live-stat">
+          <div class="live-stat-label">Nästa hotell</div>
+          <div class="live-stat-value" id="liveHotel">—</div>
+        </div>
+        <div class="live-stat">
+          <div class="live-stat-label">Kvar till nästa</div>
+          <div class="live-stat-value mono" id="liveDist">—</div>
+        </div>
+        <div class="live-stat">
+          <div class="live-stat-label">ETA slutmål</div>
+          <div class="live-stat-value mono" id="liveEta">—</div>
+        </div>
+      </div>
+
+      <div class="live-actions">
+        <button class="live-action" onclick="startGPS()">Starta GPS</button>
+        <button class="live-action" onclick="stopGPS()">Stoppa GPS</button>
+        <button class="live-action" onclick="centerOnMe()">Visa mig på kartan</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- COUNTRY ASSISTANT -->
+  <!-- ============================================================== -->
+  <section id="country">
+    <div class="section-label">Landassistent</div>
+    <h2 class="section-title">Var är vi <em>just nu?</em></h2>
+
+    <div class="country-panel">
+
+      <div class="country-header">
+        <div style="flex:1">
+          <div class="panel-label">Nu i</div>
+          <div class="current-country">
+            <span class="flag" id="curFlag">🇸🇪</span>
+            <div><div class="country-name" id="curName">Sverige</div></div>
+          </div>
+        </div>
+        <div style="flex:1">
+          <div class="panel-label" style="text-align:right">Nästa</div>
+          <div class="next-country">
+            <div><div class="country-name" id="nextName">Danmark</div></div>
+            <span class="flag" id="nextFlag">🇩🇰</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-bar">
+        <div class="border-progress" id="borderProgress"></div>
+        <div class="border-distance" id="borderDistance">Starta GPS för live-avstånd till gränsen</div>
+      </div>
+
+      <div class="prep-box" id="prepBox">
+        <div class="prep-label">Förbered inför <span id="prepCountry">nästa land</span></div>
+        <div class="prep-text" id="prepText">—</div>
+      </div>
+
+      <div class="quick-next">
+        <div class="quick-next-item">
+          <div class="qn-label">Nästa laddstopp</div>
+          <div class="qn-value" id="qnCharge">—</div>
+        </div>
+        <div class="quick-next-item">
+          <div class="qn-label">Nästa nattstopp</div>
+          <div class="qn-value" id="qnHotel">—</div>
+        </div>
+      </div>
+
+      <button class="expand-btn" onclick="toggleCountryDetails()" id="expandBtn">Visa mer om landet ▾</button>
+
+      <div class="country-details" id="countryDetails">
+        <div class="detail-row">
+          <div class="detail-label">Vägavgift</div>
+          <div class="detail-value" id="dVignette">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Laddning</div>
+          <div class="detail-value" id="dCharging">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Dokument</div>
+          <div class="detail-value" id="dDocs">—</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Att tänka på</div>
+          <div class="detail-value" id="dTips">—</div>
+        </div>
+      </div>
+
+      <div class="manual-country">
+        <div class="panel-label">Manuell väljare om GPS är av</div>
+        <div class="country-buttons" id="countryButtons"></div>
+        <div class="direction-toggle" id="directionToggle">
+          <button data-dir="down" class="active">Ner­resa</button>
+          <button data-dir="back">Hem­resa</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- MAP -->
+  <!-- ============================================================== -->
+  <section id="map-section">
+    <div class="section-label">Rutten</div>
+    <h2 class="section-title"><em>3 230 km</em> genom åtta länder</h2>
+    <div class="map-wrap">
+      <div id="map"></div>
+    </div>
+    <div class="map-legend">
+      <span><span class="legend-dot" style="background:var(--gold)"></span>Övernattning</span>
+      <span><span class="legend-dot" style="background:var(--aegean-soft)"></span>Tesla Supercharger</span>
+      <span><span class="legend-dot" style="background:var(--sunset)"></span>Slutmål</span>
+      <span><span class="legend-dot" style="background:var(--sage)"></span>Er position</span>
+    </div>
+
+    <!-- Google Maps quick-open panel -->
+    <div class="gmaps-panel">
+      <div class="gmaps-panel-title">Öppna rutten i Google Maps</div>
+      <div class="gmaps-panel-sub">Alla 9 stopp förladdade · turn-by-turn i bilen · fungerar även offline om du laddat ner området i förväg</div>
+      <div class="gmaps-btn-row">
+        <a class="gmaps-btn dit-only" target="_blank" rel="noopener"
+           href="https://www.google.com/maps/dir/?api=1&origin=Sp%C3%A5nga%2C+Stockholm&destination=Trikorfo+Beach%2C+Gerakini+63100%2C+Greece&waypoints=Berlin%7CBrno%7CBudapest%7CTimi%C8%99oara%7CCraiova%7CSofia%7CThessaloniki&travelmode=driving">
+          <span>🚗</span> Hela vägen till Trikorfo
+        </a>
+        <a class="gmaps-btn hem-only" target="_blank" rel="noopener"
+           href="https://www.google.com/maps/dir/?api=1&origin=Trikorfo+Beach%2C+Gerakini+63100%2C+Greece&destination=Sp%C3%A5nga%2C+Stockholm&waypoints=Thessaloniki%7CSofia%7CCraiova%7CTimi%C8%99oara%7CBudapest%7CBrno%7CBerlin&travelmode=driving">
+          <span>🏡</span> Hela vägen hem
+        </a>
+        <a class="gmaps-btn secondary" target="_blank" rel="noopener"
+           href="https://www.google.com/maps/place/Trikorfo+Beach%2C+Gerakini+63100%2C+Greece">
+          <span>📍</span> Bara slutmålet
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- STAGES -->
+  <!-- ============================================================== -->
+  <section id="stages">
+    <div class="section-label">Dag för dag</div>
+    <h2 class="section-title">Kör­upp­lägget</h2>
+
+    <div class="stages">
+
+      <div class="stage" data-stage="1" data-phase="down">
+        <div class="stage-head">
+          <div class="stage-day">Dag 1 · Ner</div>
+          <div class="stage-date">Fre 17 jul, 19:00</div>
+        </div>
+        <div class="stage-route">Spånga<span class="arrow">→</span>Tyskland</div>
+        <div class="stage-info">
+          <div class="stage-tag">~1 100 km</div>
+          <div class="stage-tag">Natt­kör­ning</div>
+          <div class="stage-tag">Öresund + Stor­e­bælt</div>
+          <div class="stage-tag">Berlin-trakten</div>
+        </div>
+        <div class="stage-note">Kör hela natten genom Sverige, Danmark och in i Tyskland. Sova nära Berlin eller strax söderut.</div>
+      </div>
+
+      <div class="stage" data-stage="2" data-phase="down">
+        <div class="stage-head">
+          <div class="stage-day">Dag 2 · Ner</div>
+          <div class="stage-date">Lör 18 jul</div>
+        </div>
+        <div class="stage-route">Tyskland<span class="arrow">→</span>Brno</div>
+        <div class="stage-info">
+          <div class="stage-tag">~700 km</div>
+          <div class="stage-tag">Genom Tjeckien</div>
+          <div class="stage-tag">Hotell­natt</div>
+          <div class="stage-tag">EV-undantag CZ</div>
+        </div>
+        <div class="stage-note">Smidig kördag. Registrera Tjeckien-undantaget innan ni kör in på motorväg. Tidig kväll i Brno.</div>
+      </div>
+
+      <div class="stage" data-stage="3" data-phase="down">
+        <div class="stage-head">
+          <div class="stage-day">Dag 3 · Ner</div>
+          <div class="stage-date">Sön 19 jul</div>
+        </div>
+        <div class="stage-route">Brno<span class="arrow">→</span>Sofia</div>
+        <div class="stage-info">
+          <div class="stage-tag">~1 000 km</div>
+          <div class="stage-tag">Via Budapest</div>
+          <div class="stage-tag">Timișoara + Craiova</div>
+          <div class="stage-tag">Hotell­natt Sofia</div>
+        </div>
+        <div class="stage-note">Längsta dagen. Vinjetter för Slovakien, Ungern, Rumänien och Bulgarien aktiverade. Sofia-hotell med parkering.</div>
+      </div>
+
+      <div class="stage" data-stage="4" data-phase="down">
+        <div class="stage-head">
+          <div class="stage-day">Dag 4 · Framme</div>
+          <div class="stage-date">Mån 20 jul</div>
+        </div>
+        <div class="stage-route">Sofia<span class="arrow">→</span>Trikorfo</div>
+        <div class="stage-info">
+          <div class="stage-tag">~550 km</div>
+          <div class="stage-tag">Thessaloniki SC</div>
+          <div class="stage-tag">In i Grekland</div>
+          <div class="stage-tag">Framme em/kväll</div>
+        </div>
+        <div class="stage-note">Sista laddning vid Mediterranean Cosmos i Thessaloniki. Sen sista biten till huset — ca 80 km kustväg.</div>
+      </div>
+
+      <div class="phase-sep">Hem · 12–14 aug</div>
+
+      <div class="stage" data-stage="5" data-phase="back">
+        <div class="stage-head">
+          <div class="stage-day">Dag 1 · Hem</div>
+          <div class="stage-date">Ons 12 aug</div>
+        </div>
+        <div class="stage-route">Trikorfo<span class="arrow">→</span>Sofia</div>
+        <div class="stage-info">
+          <div class="stage-tag">~550 km</div>
+          <div class="stage-tag">Thessaloniki SC</div>
+          <div class="stage-tag">Hotell­natt Sofia</div>
+          <div class="stage-tag">Samma rutt</div>
+        </div>
+        <div class="stage-note">Lugn start. Tanka mycket minne innan ni lämnar huset.</div>
+      </div>
+
+      <div class="stage" data-stage="6" data-phase="back">
+        <div class="stage-head">
+          <div class="stage-day">Dag 2 · Hem</div>
+          <div class="stage-date">Tor 13 aug</div>
+        </div>
+        <div class="stage-route">Sofia<span class="arrow">→</span>Brno</div>
+        <div class="stage-info">
+          <div class="stage-tag">~1 000 km</div>
+          <div class="stage-tag">Via Rumänien</div>
+          <div class="stage-tag">Hotell­natt Brno</div>
+          <div class="stage-tag">Lång dag</div>
+        </div>
+        <div class="stage-note">Tyngsta hemdagen. Dela gärna körning, stanna ofta, håll katten sval.</div>
+      </div>
+
+      <div class="stage" data-stage="7" data-phase="back">
+        <div class="stage-head">
+          <div class="stage-day">Dag 3 · Hem</div>
+          <div class="stage-date">Fre 14 aug</div>
+        </div>
+        <div class="stage-route">Brno<span class="arrow">→</span>Spånga</div>
+        <div class="stage-info">
+          <div class="stage-tag">~1 700 km</div>
+          <div class="stage-tag">Tyskland + DK</div>
+          <div class="stage-tag">Broar­na hem</div>
+          <div class="stage-tag">Hemma sent</div>
+        </div>
+        <div class="stage-note">Sista knäet — men hem till slut. Planera broövergångarna i god tid.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SCHEDULE TIMELINE -->
+  <!-- ============================================================== -->
+  <section id="schedule">
+    <div class="section-label">Laddplan &amp; tider</div>
+    <h2 class="section-title">Var ladda — <em>när framme?</em></h2>
+
+    <div class="schedule-toggle">
+      <button class="sched-tab active" data-plan="3day">3 dagar <span class="tag">Standard</span></button>
+      <button class="sched-tab" data-plan="5day">5 dagar <span class="tag">Lugn</span></button>
+    </div>
+
+    <div class="schedule-disclaimer">
+      <strong>OBS:</strong> Tiderna är ungefärliga, baserade på 110–120 km/h snittfart och 20–30 min per laddstopp. Tesla Nav + ABRP ger exakta live-siffror i bilen. Siffrorna i procent är mål-SoC (batterinivå) vid ankomst/avfärd.
+    </div>
+
+    <!-- ================ 3-DAGARSPLAN (STANDARD) ================ -->
+    <div class="plan-3day">
+
+    <!-- DAG 1 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 1 ner</span>
+        <span class="day-title">Spånga → Brno</span>
+        <span class="day-km">~1 650 km · ~20 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">19:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Spånga START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Full laddning hemifrån, <span class="soc">100 %</span>. Katten bältad, packning klar.</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">22:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Jönköping SC</span><span class="tl-km">330 km</span>
+            <div class="tl-note">20 min · <span class="soc">25 → 65 %</span> · snabb paus, lite mat</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">01:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Malmö Svågertorp SC</span><span class="tl-km">610 km</span>
+            <div class="tl-note">25 min · <span class="soc">20 → 80 %</span> · nattfika, sista laddningen i SE</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">02:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Öresundsbron → Danmark</span><span class="tl-km">620 km</span>
+            <div class="tl-note">~10 min broövergång</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">04:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Fredericia SC</span><span class="tl-km">880 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span> · sunrise-paus, kaffe</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">07:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Hamburg Ost SC</span><span class="tl-km">1 100 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · frukost, sträck på benen</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">10:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Berlin Süd SC</span><span class="tl-km">1 300 km</span>
+            <div class="tl-note">20 min · <span class="soc">30 → 70 %</span> · kaffe, kattpaus</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">12:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Dresden SC</span><span class="tl-km">1 430 km</span>
+            <div class="tl-note">20 min · <span class="soc">25 → 70 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Prag (Průhonice) SC</span><span class="tl-km">1 600 km</span>
+            <div class="tl-note">20 min · <span class="soc">30 → 65 %</span> · nära målet, lugn paus</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">15:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Brno · hotellnatt</span><span class="tl-km">1 650 km</span>
+            <div class="tl-note">Incheckning. Använd hotellets AC-laddare för natten om möjligt.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAG 2 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 2 ner</span>
+        <span class="day-title">Brno → Sofia</span>
+        <span class="day-km">~1 200 km · ~15 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">07:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Brno START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Hotellfrukost, <span class="soc">90 %</span> efter natten</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">08:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Bratislava SC</span><span class="tl-km">140 km</span>
+            <div class="tl-note">15 min · <span class="soc">45 → 70 %</span> · kort kaffepaus</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Budapest SC (Törökbálint)</span><span class="tl-km">340 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span> · tidig lunch + kattpaus</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Timișoara SC · Hotel Continental</span><span class="tl-km">620 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · längre paus, sträck ben</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">18:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Craiova SC · Promenada Mall</span><span class="tl-km">860 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · middag, handla vatten/mat</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">20:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Calafat–Vidin-bron → Bulgarien</span><span class="tl-km">960 km</span>
+            <div class="tl-note">Broavgift + gränspassage, ~15 min</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">22:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Sofia · hotellnatt</span><span class="tl-km">1 200 km</span>
+            <div class="tl-note">Välj hotell med laddmöjlighet eller Ionity i närheten</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAG 3 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 3 ner · FRAMME</span>
+        <span class="day-title">Sofia → Trikorfo</span>
+        <span class="day-km">~550 km · ~8 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">08:00 mån</div>
+          <div class="tl-body"><span class="tl-place">Sofia START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Ladda upp till <span class="soc">90 %</span> innan avfärd</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">11:30 mån</div>
+          <div class="tl-body"><span class="tl-place">Kulata / Promachonas → Grekland</span><span class="tl-km">170 km</span>
+            <div class="tl-note">Gränspassage, ~10–20 min. Inga vignetter, tullar på plats.</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 mån</div>
+          <div class="tl-body"><span class="tl-place">Thessaloniki SC · Mediterranean Cosmos</span><span class="tl-km">380 km</span>
+            <div class="tl-note">30 min · <span class="soc">30 → 85 %</span> · sista stora laddningen, lunch, handla lokalt</div></div>
+        </div>
+        <div class="tl-stop dest">
+          <div class="tl-time">17:00 mån</div>
+          <div class="tl-body"><span class="tl-place">Trikorfo Beach · FRAMME ✓</span><span class="tl-km">460 km</span>
+            <div class="tl-note">Gerakini 631 00. Checka in, släpp ut katten, hitta havet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEM DAG 1 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 1 hem</span>
+        <span class="day-title">Trikorfo → Sofia</span>
+        <span class="day-km">~550 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Trikorfo START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Sen start, lugn avresa. <span class="soc">80–90 %</span> från huset/närliggande laddare</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Thessaloniki SC · Mediterranean Cosmos</span><span class="tl-km">80 km</span>
+            <div class="tl-note">30 min · <span class="soc">60 → 85 %</span> · lunch vid mallen</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">14:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Promachonas / Kulata → Bulgarien</span><span class="tl-km">230 km</span>
+            <div class="tl-note">Aktivera bulgarisk vinjett innan passage</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:30 ons</div>
+          <div class="tl-body"><span class="tl-place">Sofia · hotellnatt</span><span class="tl-km">550 km</span>
+            <div class="tl-note">Tidig incheckning, middag, tidig natt inför långa dag 2</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEM DAG 2 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 2 hem</span>
+        <span class="day-title">Sofia → Brno</span>
+        <span class="day-km">~1 200 km · ~15 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">06:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Sofia START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Tidig start, <span class="soc">90 %</span></div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">09:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Vidin → Calafat-bron → Rumänien</span><span class="tl-km">240 km</span>
+            <div class="tl-note">Broavgift + Rovinieta aktiv</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">10:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Craiova SC · Promenada Mall</span><span class="tl-km">340 km</span>
+            <div class="tl-note">30 min · <span class="soc">25 → 80 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Timișoara SC · Hotel Continental</span><span class="tl-km">600 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · eftermiddagspaus</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">17:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Budapest SC (Törökbálint)</span><span class="tl-km">880 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · middag</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">20:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Bratislava SC</span><span class="tl-km">1 080 km</span>
+            <div class="tl-note">20 min · <span class="soc">30 → 65 %</span> · sista laddning innan Brno</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">22:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Brno · hotellnatt</span><span class="tl-km">1 220 km</span>
+            <div class="tl-note">Sen incheckning, kort natt</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEM DAG 3 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 3 hem · HEMMA</span>
+        <span class="day-title">Brno → Spånga</span>
+        <span class="day-km">~1 650 km · ~20 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">06:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Brno START</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Tidig start för att nå Sverige innan natten</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">08:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Prag (Průhonice) SC</span><span class="tl-km">210 km</span>
+            <div class="tl-note">20 min · <span class="soc">35 → 70 %</span> · frukost</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Dresden SC</span><span class="tl-km">380 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">13:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Berlin Süd SC</span><span class="tl-km">600 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">16:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Hamburg Ost SC</span><span class="tl-km">810 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · middag</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">20:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Fredericia SC (DK)</span><span class="tl-km">1 040 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span></div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">23:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Öresundsbron → Sverige</span><span class="tl-km">1 310 km</span>
+            <div class="tl-note">Nattövergång, sällan kö</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">23:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Malmö Svågertorp SC</span><span class="tl-km">1 330 km</span>
+            <div class="tl-note">25 min · <span class="soc">30 → 80 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">02:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Jönköping SC</span><span class="tl-km">1 610 km</span>
+            <div class="tl-note">20 min · <span class="soc">25 → 65 %</span> · sista laddningen</div></div>
+        </div>
+        <div class="tl-stop dest">
+          <div class="tl-time">05:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Spånga · HEMMA ✓</span><span class="tl-km">1 950 km</span>
+            <div class="tl-note">Släpp ut katten, packa upp i morgon.</div></div>
+        </div>
+      </div>
+    </div>
+
+    </div> <!-- /plan-3day -->
+
+    <!-- ================ 5-DAGARSPLAN (LUGN) ================ -->
+    <div class="plan-5day" style="display:none">
+
+    <div class="schedule-disclaimer" style="background:rgba(143,181,143,0.06);border-color:rgba(143,181,143,0.25)">
+      <strong style="color:var(--sage)">Lugn variant:</strong> 5 kördagar istället för 3. Avresa <strong>tor 16 juli</strong> (en dag tidigare) — framme <strong>mån 20 juli</strong> (samma datum). Hemresa börjar ons 12 aug och kommer hem <strong>sön 16 aug</strong> (2 dagar senare). Fördel: max ~700 km per dag, riktiga hotellnätter i Berlin, Brno, Timișoara och Sofia — lugnare för katten och familjen.
+    </div>
+
+    <!-- 5D DAG 1 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 1 ner</span>
+        <span class="day-title">Spånga → Berlin</span>
+        <span class="day-km">~1 280 km · ~15 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">08:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Spånga START · 16 juli</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Full laddning hemifrån, <span class="soc">100 %</span>. Tidig morgonstart.</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Jönköping SC</span><span class="tl-km">330 km</span>
+            <div class="tl-note">20 min · <span class="soc">25 → 65 %</span> · kaffepaus</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Malmö Svågertorp SC</span><span class="tl-km">610 km</span>
+            <div class="tl-note">25 min · <span class="soc">20 → 80 %</span> · lunch, sista laddning i SE</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">15:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Öresundsbron → Danmark</span><span class="tl-km">620 km</span>
+            <div class="tl-note">~10 min broövergång</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">17:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Fredericia SC</span><span class="tl-km">880 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">20:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Hamburg Ost SC</span><span class="tl-km">1 100 km</span>
+            <div class="tl-note">30 min · <span class="soc">20 → 80 %</span> · middag</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">23:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Berlin · hotellnatt</span><span class="tl-km">1 280 km</span>
+            <div class="tl-note">Sen incheckning. Hotell med parkering + laddning.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D DAG 2 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 2 ner</span>
+        <span class="day-title">Berlin → Brno</span>
+        <span class="day-km">~550 km · ~7 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Berlin START · 17 juli</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Lugn morgon, frukost på hotellet. <span class="soc">85 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Dresden SC</span><span class="tl-km">220 km</span>
+            <div class="tl-note">20 min · <span class="soc">35 → 70 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Prag Průhonice SC</span><span class="tl-km">380 km</span>
+            <div class="tl-note">25 min · <span class="soc">30 → 70 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">16:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Brno · hotellnatt</span><span class="tl-km">550 km</span>
+            <div class="tl-note">Tidig incheckning. Promenera, hitta restaurang.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D DAG 3 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 3 ner</span>
+        <span class="day-title">Brno → Budapest → Timișoara</span>
+        <span class="day-km">~620 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Brno START · 18 juli</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Hotellfrukost, <span class="soc">90 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Bratislava SC</span><span class="tl-km">140 km</span>
+            <div class="tl-note">15 min · <span class="soc">50 → 70 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">13:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Budapest SC (Törökbálint)</span><span class="tl-km">340 km</span>
+            <div class="tl-note">30 min · <span class="soc">30 → 75 %</span> · lunch + kattpaus</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Timișoara · Hotel Continental · hotellnatt</span><span class="tl-km">620 km</span>
+            <div class="tl-note">Bo direkt ovanför Tesla SC. Middag i centrum.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D DAG 4 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 4 ner</span>
+        <span class="day-title">Timișoara → Craiova → Sofia</span>
+        <span class="day-km">~600 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Timișoara START · 19 juli</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Ladda fullt på SC innan avfärd, <span class="soc">95 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">12:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Craiova SC · Promenada Mall</span><span class="tl-km">260 km</span>
+            <div class="tl-note">45 min · <span class="soc">35 → 85 %</span> · lunch i mallen</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">15:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Calafat–Vidin-bron → Bulgarien</span><span class="tl-km">360 km</span>
+            <div class="tl-note">Broavgift + BG-vignett aktiv</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">18:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Sofia · hotellnatt</span><span class="tl-km">600 km</span>
+            <div class="tl-note">Tidig incheckning, middag, tidig kväll</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D DAG 5 NER -->
+    <div class="schedule-day" data-phase="down">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 5 ner · FRAMME</span>
+        <span class="day-title">Sofia → Trikorfo</span>
+        <span class="day-km">~550 km · ~8 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">08:00 mån</div>
+          <div class="tl-body"><span class="tl-place">Sofia START · 20 juli</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Ladda upp till <span class="soc">90 %</span></div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">11:30 mån</div>
+          <div class="tl-body"><span class="tl-place">Kulata / Promachonas → Grekland</span><span class="tl-km">170 km</span>
+            <div class="tl-note">Gränspassage, inga vignetter</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 mån</div>
+          <div class="tl-body"><span class="tl-place">Thessaloniki SC · Mediterranean Cosmos</span><span class="tl-km">380 km</span>
+            <div class="tl-note">30 min · <span class="soc">30 → 85 %</span> · sista stora laddningen</div></div>
+        </div>
+        <div class="tl-stop dest">
+          <div class="tl-time">17:00 mån</div>
+          <div class="tl-body"><span class="tl-place">Trikorfo Beach · FRAMME ✓</span><span class="tl-km">460 km</span>
+            <div class="tl-note">Gerakini 631 00. Incheckning, släpp ut katten, hitta havet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D HEM DAG 1 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 1 hem</span>
+        <span class="day-title">Trikorfo → Sofia</span>
+        <span class="day-km">~550 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Trikorfo START · 12 aug</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Sen start, <span class="soc">80–90 %</span> från huset</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Thessaloniki SC</span><span class="tl-km">80 km</span>
+            <div class="tl-note">30 min · <span class="soc">60 → 85 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">14:00 ons</div>
+          <div class="tl-body"><span class="tl-place">Promachonas → Bulgarien</span><span class="tl-km">230 km</span></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:30 ons</div>
+          <div class="tl-body"><span class="tl-place">Sofia · hotellnatt</span><span class="tl-km">550 km</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D HEM DAG 2 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 2 hem</span>
+        <span class="day-title">Sofia → Timișoara</span>
+        <span class="day-km">~600 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">08:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Sofia START · 13 aug</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Efter frukost, <span class="soc">90 %</span></div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">11:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Vidin → Calafat-bron → Rumänien</span><span class="tl-km">240 km</span></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">13:00 tor</div>
+          <div class="tl-body"><span class="tl-place">Craiova SC · Promenada Mall</span><span class="tl-km">340 km</span>
+            <div class="tl-note">45 min · <span class="soc">25 → 85 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:30 tor</div>
+          <div class="tl-body"><span class="tl-place">Timișoara · Hotel Continental · hotellnatt</span><span class="tl-km">600 km</span>
+            <div class="tl-note">Samma hotell som på nerresan — Tesla SC på plats</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D HEM DAG 3 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 3 hem</span>
+        <span class="day-title">Timișoara → Brno</span>
+        <span class="day-km">~620 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">08:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Timișoara START · 14 aug</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Ladda fullt på SC, <span class="soc">95 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Budapest SC (Törökbálint)</span><span class="tl-km">280 km</span>
+            <div class="tl-note">30 min · <span class="soc">35 → 75 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:30 fre</div>
+          <div class="tl-body"><span class="tl-place">Bratislava SC</span><span class="tl-km">480 km</span>
+            <div class="tl-note">15 min · <span class="soc">45 → 70 %</span></div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:00 fre</div>
+          <div class="tl-body"><span class="tl-place">Brno · hotellnatt</span><span class="tl-km">620 km</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D HEM DAG 4 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 4 hem</span>
+        <span class="day-title">Brno → Berlin</span>
+        <span class="day-km">~680 km · ~9 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">09:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Brno START · 15 aug</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Hotellfrukost, <span class="soc">85 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">11:30 lör</div>
+          <div class="tl-body"><span class="tl-place">Prag (Průhonice) SC</span><span class="tl-km">210 km</span>
+            <div class="tl-note">20 min · <span class="soc">45 → 75 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">14:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Dresden SC</span><span class="tl-km">380 km</span>
+            <div class="tl-note">25 min · <span class="soc">30 → 75 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop hotel">
+          <div class="tl-time">17:00 lör</div>
+          <div class="tl-body"><span class="tl-place">Berlin · hotellnatt</span><span class="tl-km">680 km</span>
+            <div class="tl-note">Sista hotellnatten innan Sverige</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5D HEM DAG 5 -->
+    <div class="schedule-day" data-phase="back">
+      <div class="schedule-day-head">
+        <span class="day-badge">Dag 5 hem · HEMMA</span>
+        <span class="day-title">Berlin → Spånga</span>
+        <span class="day-km">~1 280 km · ~15 h</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-stop start">
+          <div class="tl-time">07:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Berlin START · 16 aug</span><span class="tl-km">0 km</span>
+            <div class="tl-note">Tidig start för att nå Sverige under dagen</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">09:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Hamburg Ost SC</span><span class="tl-km">220 km</span>
+            <div class="tl-note">25 min · <span class="soc">35 → 75 %</span> · frukost</div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">12:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Fredericia SC (DK)</span><span class="tl-km">460 km</span>
+            <div class="tl-note">25 min · <span class="soc">25 → 75 %</span> · lunch</div></div>
+        </div>
+        <div class="tl-stop border">
+          <div class="tl-time">15:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Öresundsbron → Sverige</span><span class="tl-km">680 km</span></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">16:00 sön</div>
+          <div class="tl-body"><span class="tl-place">Malmö Svågertorp SC</span><span class="tl-km">680 km</span>
+            <div class="tl-note">25 min · <span class="soc">30 → 80 %</span></div></div>
+        </div>
+        <div class="tl-stop charge">
+          <div class="tl-time">19:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Jönköping SC</span><span class="tl-km">960 km</span>
+            <div class="tl-note">20 min · <span class="soc">25 → 65 %</span> · middag</div></div>
+        </div>
+        <div class="tl-stop dest">
+          <div class="tl-time">22:30 sön</div>
+          <div class="tl-body"><span class="tl-place">Spånga · HEMMA ✓</span><span class="tl-km">1 280 km</span>
+            <div class="tl-note">Söndag kväll hemma, vecka på måndag.</div></div>
+        </div>
+      </div>
+    </div>
+
+    </div> <!-- /plan-5day -->
+
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- TESLA CHARGING -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Laddning</div>
+    <h2 class="section-title">Tesla <em>Super­chargers</em></h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:18px;max-width:520px">Fyra kärnstopp på rutten. Alla officiellt listade av Tesla. Backup-appar: ABRP, Plugshare, Eldrive, e-charge.</p>
+
+    <div class="charge-grid">
+
+      <div class="charge-item">
+        <div class="charge-city">Rumänien</div>
+        <div class="charge-name">Timișoara</div>
+        <div class="charge-note">Hotel Continental. 6 st upp till 250 kW, 24/7. Första stora laddstoppet efter Ungern.</div>
+        <div class="charge-soc">
+          <span class="soc-pill">Ankomst 15–20 %</span>
+          <span class="soc-pill out">Avfärd 80 %</span>
+        </div>
+      </div>
+
+      <div class="charge-item">
+        <div class="charge-city">Rumänien</div>
+        <div class="charge-name">Craiova</div>
+        <div class="charge-note">Mellanstopp mellan Timișoara och Sofia. Bra för lunch och kattpaus.</div>
+        <div class="charge-soc">
+          <span class="soc-pill">Ankomst 20 %</span>
+          <span class="soc-pill out">Avfärd 70 %</span>
+        </div>
+      </div>
+
+      <div class="charge-item">
+        <div class="charge-city">Bulgarien</div>
+        <div class="charge-name">Sofia</div>
+        <div class="charge-note">Ladda upp ordentligt inför Grekland-etappen. Kolla att hotellet har laddning på plats för natten.</div>
+        <div class="charge-soc">
+          <span class="soc-pill">Ankomst 15 %</span>
+          <span class="soc-pill out">Avfärd 90 %</span>
+        </div>
+      </div>
+
+      <div class="charge-item">
+        <div class="charge-city">Grekland</div>
+        <div class="charge-name">Thessaloniki</div>
+        <div class="charge-note">Mediterranean Cosmos. Sista laddning innan Trikorfo — ~80 km kvar efter. Ingen stress, räkna med 30 min.</div>
+        <div class="charge-soc">
+          <span class="soc-pill">Ankomst 25 %</span>
+          <span class="soc-pill out">Avfärd 80 %</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- HOTELS -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Över­natt­ning</div>
+    <h2 class="section-title">Hotell på vägen</h2>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Brno, Tjeckien</div>
+          <div class="card-sub">Nattstopp · dag 2 ner & dag 2 hem</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">Jämn mittpunkt på resan. Universitetsstad, mycket hotell att välja på, lätt att hitta bra parkering. Boka båda nätterna samtidigt.</p>
+      <div class="badges">
+        <span class="badge">Pet friendly</span>
+        <span class="badge">Parkering</span>
+        <span class="badge">Nära motorväg</span>
+        <span class="badge">Sen incheckning</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Sofia, Bulgarien</div>
+          <div class="card-sub">Nattstopp · dag 3 ner & dag 1 hem</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">Viktig mental vilopunkt innan Grekland-etappen. Välj hotell i utkanten för enklare utfart på morgonen — och gärna något med in-house laddning.</p>
+      <div class="badges">
+        <span class="badge">Pet friendly</span>
+        <span class="badge">Parkering</span>
+        <span class="badge">Nära laddning</span>
+        <span class="badge">Frukost</span>
+      </div>
+    </div>
+
+    <div class="card" style="background:linear-gradient(160deg, rgba(212,169,90,0.05), transparent)">
+      <div class="card-head">
+        <div>
+          <div class="card-title" style="font-style:italic;color:var(--gold-soft)">Valfritt extra­stopp</div>
+          <div class="card-sub">Berlin — om natt­kör­ningen blir för tung</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6">Om ni är slitna fredag natt — ett extra hotell i Berlin-trakten lägger till marginal utan att spräcka schemat.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- CAT -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Familje­medlem</div>
+    <h2 class="section-title">Katten på resa</h2>
+
+    <div class="cat-panel">
+
+      <div class="cat-trackers">
+        <div class="tracker">
+          <div class="tracker-label">Senast mat</div>
+          <div class="tracker-value" id="catFood">—</div>
+          <button class="tracker-btn" onclick="updateTracker('catFood')">Nu</button>
+        </div>
+        <div class="tracker">
+          <div class="tracker-label">Senast vatten</div>
+          <div class="tracker-value" id="catWater">—</div>
+          <button class="tracker-btn" onclick="updateTracker('catWater')">Nu</button>
+        </div>
+        <div class="tracker">
+          <div class="tracker-label">Senast låda</div>
+          <div class="tracker-value" id="catLitter">—</div>
+          <button class="tracker-btn" onclick="updateTracker('catLitter')">Nu</button>
+        </div>
+        <div class="tracker">
+          <div class="tracker-label">Senaste pausen</div>
+          <div class="tracker-value" id="catBreak">—</div>
+          <button class="tracker-btn" onclick="updateTracker('catBreak')">Nu</button>
+        </div>
+      </div>
+
+      <div class="checklist-head">
+        <h3 style="font-family:'Cormorant Garamond';font-size:18px;font-weight:500">Att ha med</h3>
+        <span class="checklist-progress" id="catProgress">0/7</span>
+      </div>
+      <ul class="checklist" id="catChecklist"></ul>
+
+      <div class="cat-warning">
+        <strong>Aldrig ensam i varm bil.</strong> Temperaturen stiger dramatiskt snabbt i solen, även med fönstret på glänt. Stanna tillsammans, eller ta med katten när ni lämnar bilen.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- VIGNETTER -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Dokument & avgifter</div>
+    <h2 class="section-title">Vinjetter &amp; vägtullar</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:14px;max-width:520px">Köp alltid på de <strong style="color:var(--gold-soft)">officiella</strong> siterna nedan — tredjepartssajter (vintrica.com, vignetteslovakia.com osv) lägger ofta på 30–100 % i serviceavgifter.</p>
+
+    <div class="vignette-warning">
+      <strong>Varning för bedrägerisajter:</strong> Särskilt i Slovakien och Bulgarien varnar myndigheterna för falska sajter som tar betalt men aldrig registrerar vinjetten. Använd bara länkarna nedan.
+    </div>
+
+    <div class="vignette-grid">
+
+      <div class="vignette-card">
+        <div class="vignette-flag">DE · Tyskland</div>
+        <div class="vignette-country">Inga vinjetter</div>
+        <div class="vignette-info">Inga vägavgifter för personbilar. Obs: varningsväst &amp; triangel bör finnas i bilen.</div>
+        <div class="vignette-price">
+          <strong>0 kr</strong>
+          <span class="sub">Gratis genomfart</span>
+        </div>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">CZ · Tjeckien</div>
+        <div class="vignette-country">Gratis för EV</div>
+        <div class="vignette-info">Elbilar &lt; 3,5 t är <strong style="color:var(--gold-soft)">befriade</strong> — men utländska reg.nummer <strong style="color:var(--danger)">MÅSTE registrera undantaget online</strong> innan motorväg. Annars bötfälls ni av kamerasystemet.</div>
+        <div class="vignette-price">
+          <strong>0 kr</strong>
+          <span class="sub">Efter registrering av EV-undantag</span>
+        </div>
+        <a href="https://edalnice.cz/en/exempt-vehicles/index.html" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Registrera EV-undantag →</span>
+            <span class="dom">edalnice.cz (officiell)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">SK · Slovakien</div>
+        <div class="vignette-country">10-dagars e-vignett</div>
+        <div class="vignette-info">Kortaste alternativet är 10 dagar. Köp en ner + en hem, eller en månadsvignett (17,10 €) som täcker hela resan.</div>
+        <div class="vignette-price">
+          <strong>10,80 € × 2</strong>
+          <span class="sub">≈ 245 kr totalt · eller 17,10 € (månad) · 190 kr</span>
+        </div>
+        <a href="https://eznamka.sk/en" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Köp e-vignett →</span>
+            <span class="dom">eznamka.sk (officiell)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">HU · Ungern</div>
+        <div class="vignette-country">10-dagars D1</div>
+        <div class="vignette-info">D1 (personbil ≤ 3,5 t). 10-dagars räcker — ni är i landet under en dag varje riktning.</div>
+        <div class="vignette-price">
+          <strong>~18 € × 2</strong>
+          <span class="sub">≈ 410 kr totalt · se exakt pris på sidan</span>
+        </div>
+        <a href="https://nemzetiutdij.hu/en/e-vignette/tolls/e-vignette-rates" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Köp e-matrica →</span>
+            <span class="dom">nemzetiutdij.hu (officiell)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">RO · Rumänien</div>
+        <div class="vignette-country">Rovinieta 10 dagar</div>
+        <div class="vignette-info">Kategori A (personbil). Obligatorisk på <strong>alla</strong> nationalvägar, inte bara motorvägar.</div>
+        <div class="vignette-price">
+          <strong>30,51 RON × 2</strong>
+          <span class="sub">≈ 140 kr totalt · ca 6 €/st</span>
+        </div>
+        <a href="https://www.roviniete.ro/en" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Köp Rovinieta →</span>
+            <span class="dom">roviniete.ro (officiell CNAIR-partner)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">BG · Bulgarien</div>
+        <div class="vignette-country">Veckovignett</div>
+        <div class="vignette-info">Gäller 7 dagar från aktiveringen. Pris höjdes maj 2025 — nu 15 BGN per vignett.</div>
+        <div class="vignette-price">
+          <strong>15 BGN × 2</strong>
+          <span class="sub">≈ 180 kr totalt · ca 7,67 €/st</span>
+        </div>
+        <a href="https://web.bgtoll.bg/" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Köp e-vignett →</span>
+            <span class="dom">bgtoll.bg (officiell)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">GR · Grekland</div>
+        <div class="vignette-country">Tullar på plats</div>
+        <div class="vignette-info">Inga vinjetter. Tullstationer längs Egnatia Odos och E75 tar betalt kontant/kort. Ha EUR redo.</div>
+        <div class="vignette-price">
+          <strong>~15–25 €</strong>
+          <span class="sub">Spridda tullar, t/r hela sträckan Kulata → Trikorfo</span>
+        </div>
+        <a href="https://www.aodos.gr/en/tolls/tolls-prices" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Se tullpriser →</span>
+            <span class="dom">aodos.gr (officiell)</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+      <div class="vignette-card">
+        <div class="vignette-flag">DK · Broar</div>
+        <div class="vignette-country">Öresund + Storebælt</div>
+        <div class="vignette-info">Betalas automatiskt med kort vid bom. BroBizz kan ge ~5 % rabatt om man hinner skaffa det i förväg.</div>
+        <div class="vignette-price">
+          <strong>~2 255 kr t/r</strong>
+          <span class="sub">Öresund ~470 DKK + Storebælt ~314 DKK per riktning</span>
+        </div>
+        <a href="https://www.oresundsbron.com/sv/" target="_blank" rel="noopener" class="buy-link">
+          <span class="buy-link-text">
+            <span>Öresundsbron →</span>
+            <span class="dom">oresundsbron.com</span>
+          </span>
+          <span class="arr">↗</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- SPEED VS COST -->
+  <!-- ============================================================== -->
+  <section id="speed">
+    <div class="section-label">Strategi</div>
+    <h2 class="section-title">Hastighet <em>vs</em> kostnad &amp; tid</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:18px;max-width:520px">För hela resan tur &amp; retur (6 460 km). Välj hastighet — kort uppdateras och rekommendationen byter färg baserat på vad som är smartast.</p>
+
+    <div class="speed-slider-wrap">
+      <input type="range" class="speed-slider" id="speedSlider" min="0" max="3" step="1" value="1">
+      <div class="speed-labels">
+        <span>110</span>
+        <span>120</span>
+        <span>130</span>
+        <span>140</span>
+      </div>
+    </div>
+
+    <div class="speed-cards" id="speedCards"></div>
+
+    <div class="speed-summary" id="speedSummary">
+      <div class="headline" id="speedHeadline">—</div>
+      <div class="body" id="speedBody">—</div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- BUDGET -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Ekonomi</div>
+    <h2 class="section-title">Kostnads­räknare</h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:18px;max-width:520px">Baserat på 6 460 km tur och retur. Dra i reglagen för att se effekten. Totalen uppdateras i realtid.</p>
+
+    <div class="budget-panel">
+
+      <div class="slider-row">
+        <span class="slider-label">Förbrukning</span>
+        <input type="range" class="slider" id="bKwh" min="18" max="26" step="0.5" value="22">
+        <span class="slider-value" id="bKwhOut">22 kWh</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-label">Elpris</span>
+        <input type="range" class="slider" id="bPrice" min="2" max="7" step="0.25" value="4">
+        <span class="slider-value" id="bPriceOut">4,00 kr</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-label">Hotell­nätter</span>
+        <input type="range" class="slider" id="bNights" min="0" max="6" step="1" value="4">
+        <span class="slider-value" id="bNightsOut">4 st</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-label">Pris/natt</span>
+        <input type="range" class="slider" id="bHotel" min="700" max="2000" step="50" value="1250">
+        <span class="slider-value" id="bHotelOut">1 250 kr</span>
+      </div>
+
+      <div class="slider-row">
+        <span class="slider-label">Mat &amp; buffert</span>
+        <input type="range" class="slider" id="bBuffer" min="0" max="5000" step="250" value="1500">
+        <span class="slider-value" id="bBufferOut">1 500 kr</span>
+      </div>
+
+      <div class="budget-totals">
+        <div class="total-row"><span>El (6 460 km)</span><span class="val" id="bEl">5 551 kr</span></div>
+        <div class="total-row"><span>Broar t/r</span><span class="val">2 255 kr</span></div>
+        <div class="total-row"><span>Vinjetter</span><span class="val">763 kr</span></div>
+        <div class="total-row"><span>Hotell</span><span class="val" id="bHot">5 000 kr</span></div>
+        <div class="total-row"><span>Mat &amp; buffert</span><span class="val" id="bBuf">1 500 kr</span></div>
+
+        <div class="total-final">
+          <span class="label">Totalt t/r</span>
+          <span class="val" id="bTotal">15 069 kr</span>
+        </div>
+      </div>
+
+      <div class="scenarios">
+        <button class="scenario-btn" data-scenario="budget"><span class="name">Billig</span><span class="range">12–13 tkr</span></button>
+        <button class="scenario-btn active" data-scenario="normal"><span class="name">Normal</span><span class="range">14–15 tkr</span></button>
+        <button class="scenario-btn" data-scenario="comfort"><span class="name">Bekväm</span><span class="range">15–17 tkr</span></button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- EMERGENCY -->
+  <!-- ============================================================== -->
+  <section id="emergency">
+    <div class="section-label">Krisläge</div>
+    <h2 class="section-title">Om bilen stannar</h2>
+
+    <div class="emergency">
+      <div class="emergency-title">Stanna. Andas. Ring.</div>
+      <div class="emergency-sub">Tryck på ett nummer för att ringa direkt. Håll dokument redo i handskfacket.</div>
+
+      <div class="call-row">
+        <a href="tel:112" class="call-btn">
+          <div class="call-label">Nödläge</div>
+          <div class="call-number">112</div>
+        </a>
+        <a href="tel:+46775888036" class="call-btn">
+          <div class="call-label">Tesla Sverige</div>
+          <div class="call-number">+46 77-588 80 36</div>
+        </a>
+        <a href="tel:+4686704000" class="call-btn">
+          <div class="call-label">LF / SOS Intl.</div>
+          <div class="call-number">+46 8 670 40 00</div>
+        </a>
+        <a href="tel:+40316301257" class="call-btn">
+          <div class="call-label">Tesla Rumänien</div>
+          <div class="call-number">+40 316 301 257</div>
+        </a>
+        <a href="tel:+35924925455" class="call-btn">
+          <div class="call-label">Tesla Bulgarien</div>
+          <div class="call-number">+359 2 492 5455</div>
+        </a>
+      </div>
+
+      <div class="emergency-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>Säker plats. Varnings­blinkers och triangel. Osäker plats → <strong style="color:var(--gold-soft)">ring 112 först</strong>.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>Öppna Tesla-appen → Roadside Assistance. 24/7 på svenska.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>Bärgning eller verkstad → ring <strong style="color:var(--gold-soft)">LF</strong>. De styr bärgning, verkstad, vidare transport och eventuell hemresa.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>Inom EU räcker försäkringsbrev. Hela rutten är EU — lugn, ni är täckta.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- CHECKLISTS -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="section-label">Checklistor</div>
+    <h2 class="section-title">Att pricka av</h2>
+
+    <div class="card">
+      <div class="checklist-head">
+        <h3 style="font-family:'Cormorant Garamond';font-size:20px;font-weight:500">Innan avresa</h3>
+        <span class="checklist-progress" id="prepProgress">0/11</span>
+      </div>
+      <ul class="checklist" id="prepChecklist"></ul>
+    </div>
+
+    <div class="card">
+      <div class="checklist-head">
+        <h3 style="font-family:'Cormorant Garamond';font-size:20px;font-weight:500">På vägen</h3>
+        <span class="checklist-progress" id="roadProgress">0/8</span>
+      </div>
+      <ul class="checklist" id="roadChecklist"></ul>
+    </div>
+
+    <div class="card">
+      <div class="checklist-head">
+        <h3 style="font-family:'Cormorant Garamond';font-size:20px;font-weight:500">Appar att ladda ner</h3>
+        <span class="checklist-progress" id="appProgress">0/7</span>
+      </div>
+      <ul class="checklist" id="appChecklist"></ul>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- FINAL RECOMMENDATION -->
+  <!-- ============================================================== -->
+  <section>
+    <div class="final-rec">
+      <div class="label">Min rekommendation</div>
+      <p class="quote">
+        Kör <em>EU-rutten</em> via Rumänien och Bulgarien. Sov i <em>Brno</em> och <em>Sofia</em>. Ladda sista gången i <em>Thessaloniki</em>. Och kom hem till <em>Trikorfo Beach</em> med katten, barnen och hela familjen i behåll.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    Amiridis · Sommar 2026
+    <div><a class="logout-link" onclick="logout()">Logga ut</a></div>
+  </footer>
+
+</main>
+
+<!-- ============================================================== -->
+<!-- BOTTOM NAV -->
+<!-- ============================================================== -->
+<nav class="bottom-nav">
+  <button class="nav-btn" onclick="jumpTo('top')">Start</button>
+  <button class="nav-btn" onclick="jumpTo('live')">Live</button>
+  <button class="nav-btn" onclick="jumpTo('map-section')">Karta</button>
+  <button class="nav-btn" onclick="jumpTo('stages')">Dagar</button>
+  <button class="nav-btn" onclick="jumpTo('emergency')">SOS</button>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// ==============================================================
+// LOGIN GATE
+// ==============================================================
+// ★★★ BYT LÖSENORDET HÄR ★★★
+// Ändra strängen nedan till det lösenord ni vill ha.
+// Dela det muntligt med familjen — skriv inte in det i andra appar.
+const TRIP_PASSWORD = "Snowie2026";
+// ★★★★★★★★★★★★★★★★★★★★★★★★★
+
+const AUTH_KEY = "trip_authed_v1";
+
+function _checkAuth() {
+  const stored = localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY);
+  if (stored === "1") {
+    document.getElementById("loginOverlay").style.display = "none";
+    document.body.classList.remove("locked");
+    return true;
+  }
+  return false;
+}
+
+function _attemptLogin() {
+  const input = document.getElementById("loginInput");
+  const error = document.getElementById("loginError");
+  const remember = document.getElementById("rememberMe").checked;
+
+  if (input.value === TRIP_PASSWORD) {
+    if (remember) {
+      localStorage.setItem(AUTH_KEY, "1");
+    } else {
+      sessionStorage.setItem(AUTH_KEY, "1");
+    }
+    document.getElementById("loginOverlay").style.display = "none";
+    document.body.classList.remove("locked");
+    input.value = "";
+    error.classList.remove("show");
+    // Trigger map redraw now that overlay is gone
+    setTimeout(() => { if (typeof map !== "undefined" && map) map.invalidateSize(); }, 150);
+  } else {
+    error.classList.add("show");
+    input.value = "";
+    input.focus();
+  }
+}
+
+function logout() {
+  if (!confirm("Logga ut från resplanen?")) return;
+  localStorage.removeItem(AUTH_KEY);
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+document.getElementById("loginBtn").addEventListener("click", _attemptLogin);
+document.getElementById("loginInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); _attemptLogin(); }
+});
+
+_checkAuth();
+
+// ==============================================================
+// DATA
+// ==============================================================
+
+const WAYPOINTS = [
+  { name: "Spånga",              lat: 59.3803, lng: 17.8937, type: "start", desc: "Höglindavägen 2B" },
+  { name: "Berlin",              lat: 52.5200, lng: 13.4050, type: "waypoint", desc: "Valfritt vilstopp" },
+  { name: "Brno",                lat: 49.1951, lng: 16.6068, type: "hotel", desc: "Hotellnatt — dag 2" },
+  { name: "Budapest",            lat: 47.4979, lng: 19.0402, type: "waypoint", desc: "Genomkörning" },
+  { name: "Timișoara",           lat: 45.7519, lng: 21.2272, type: "charge", desc: "Tesla SC · Hotel Continental · 6 × 250 kW" },
+  { name: "Craiova",             lat: 44.3117, lng: 23.7614, type: "charge", desc: "Tesla SC · Promenada Mall · 8 × 250 kW" },
+  { name: "Sofia",               lat: 42.6977, lng: 23.3219, type: "hotel", desc: "Hotellnatt + laddning" },
+  { name: "Thessaloniki SC",     lat: 40.5692, lng: 23.0212, type: "charge", desc: "Mediterranean Cosmos · 8 × 250 kW" },
+  { name: "Trikorfo Beach",      lat: 40.2872, lng: 23.4414, type: "dest", desc: "Gerakini 631 00, Grekland" }
+];
+
+const DEPARTURE = new Date("2026-07-17T19:00:00+02:00");
+
+// ==============================================================
+// COUNTDOWN
+// ==============================================================
+
+// ==============================================================
+// MODE SWITCHER (Dit / Hem)
+// ==============================================================
+
+const ARRIVE_TRIKORFO = new Date("2026-07-20T18:00:00+02:00");
+const RETURN_START    = new Date("2026-08-12T08:00:00+02:00");
+const HOME_AGAIN      = new Date("2026-08-14T22:00:00+02:00");
+
+// Forward-declared shared state (actual values set in COUNTRY ASSISTANT block further down)
+window.currentCountry = "SE";
+window.currentDirection = "down";
+
+let currentMode = localStorage.getItem("trip_mode_v1") || autoDetectMode();
+
+function autoDetectMode() {
+  const now = new Date();
+  return now >= RETURN_START ? "hem" : "dit";
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  localStorage.setItem("trip_mode_v1", mode);
+  document.body.classList.toggle("mode-dit", mode === "dit");
+  document.body.classList.toggle("mode-hem", mode === "hem");
+  document.querySelectorAll(".mode-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+  // Sync with country assistant direction (defined later — wrap in try to survive TDZ on early call)
+  window.currentDirection = mode === "hem" ? "back" : "down";
+  try {
+    if (typeof syncDirectionUI === "function") syncDirectionUI();
+    if (typeof renderCountryPanel === "function") {
+      renderCountryPanel(window.currentCountry);
+    }
+  } catch (e) { /* country block not yet initialized — safe to ignore on early call */ }
+  try { updateCountdown(); } catch (e) { /* countdown el might not exist in test env */ }
+  try { updateJourneyFlow(); } catch (e) { /* flow block not yet initialized */ }
+}
+
+// ==============================================================
+// JOURNEY FLOW — kompakt nu→nästa→ladda→sov breadcrumb
+// ==============================================================
+function updateJourneyFlow() {
+  const now = new Date();
+  const dep = new Date("2026-07-17T19:00:00+02:00");
+  const ret = new Date("2026-08-12T09:00:00+02:00");
+  const arrived = new Date("2026-07-20T17:00:00+02:00");
+
+  const flowNow = document.getElementById("flowNow");
+  const flowNext = document.getElementById("flowNext");
+  const flowCharge = document.getElementById("flowCharge");
+  const flowSleep = document.getElementById("flowSleep");
+  if (!flowNow) return;
+
+  // Default breadcrumb per mode
+  if (currentMode === "dit") {
+    // Dag 1: SE→DK→DE, sov Brno
+    if (now < dep) {
+      flowNow.textContent = "📅 Innan avresa";
+      flowNext.textContent = "🇸🇪 Sverige";
+      flowCharge.textContent = "Jönköping SC";
+      flowSleep.textContent = "Brno (lör)";
+    } else if (now < arrived) {
+      // During journey — approximate by days since departure
+      const h = (now - dep) / 36e5;
+      if (h < 8) { flowNow.textContent = "🇸🇪 Sverige"; flowNext.textContent = "🇩🇰 Danmark"; flowCharge.textContent = "Malmö SC"; flowSleep.textContent = "Brno (lör)"; }
+      else if (h < 14) { flowNow.textContent = "🇩🇰 Danmark"; flowNext.textContent = "🇩🇪 Tyskland"; flowCharge.textContent = "Hamburg SC"; flowSleep.textContent = "Brno (lör)"; }
+      else if (h < 20) { flowNow.textContent = "🇩🇪 Tyskland"; flowNext.textContent = "🇨🇿 Tjeckien"; flowCharge.textContent = "Dresden SC"; flowSleep.textContent = "Brno (lör)"; }
+      else if (h < 38) { flowNow.textContent = "🇨🇿 Tjeckien"; flowNext.textContent = "🇸🇰 Slovakien"; flowCharge.textContent = "Bratislava SC"; flowSleep.textContent = "Sofia (sön)"; }
+      else if (h < 48) { flowNow.textContent = "🇭🇺 Ungern"; flowNext.textContent = "🇷🇴 Rumänien"; flowCharge.textContent = "Timișoara SC"; flowSleep.textContent = "Sofia (sön)"; }
+      else if (h < 58) { flowNow.textContent = "🇷🇴 Rumänien"; flowNext.textContent = "🇧🇬 Bulgarien"; flowCharge.textContent = "Craiova SC"; flowSleep.textContent = "Sofia (sön)"; }
+      else if (h < 66) { flowNow.textContent = "🇧🇬 Bulgarien"; flowNext.textContent = "🇬🇷 Grekland"; flowCharge.textContent = "Thessaloniki SC"; flowSleep.textContent = "Trikorfo ✓"; }
+      else { flowNow.textContent = "🇬🇷 Grekland"; flowNext.textContent = "Trikorfo Beach"; flowCharge.textContent = "Thessaloniki SC"; flowSleep.textContent = "Trikorfo ✓"; }
+    } else {
+      flowNow.textContent = "🇬🇷 Trikorfo Beach ✓";
+      flowNext.textContent = "—";
+      flowCharge.textContent = "—";
+      flowSleep.textContent = "Grekland";
+    }
+  } else {
+    // Hemresa
+    if (now < ret) {
+      flowNow.textContent = "🇬🇷 Grekland";
+      flowNext.textContent = "🇧🇬 Bulgarien";
+      flowCharge.textContent = "Thessaloniki SC";
+      flowSleep.textContent = "Sofia (ons)";
+    } else {
+      const h = (now - ret) / 36e5;
+      if (h < 10) { flowNow.textContent = "🇬🇷 Grekland"; flowNext.textContent = "🇧🇬 Bulgarien"; flowCharge.textContent = "Thessaloniki SC"; flowSleep.textContent = "Sofia (ons)"; }
+      else if (h < 30) { flowNow.textContent = "🇧🇬 Bulgarien"; flowNext.textContent = "🇷🇴 Rumänien"; flowCharge.textContent = "Craiova SC"; flowSleep.textContent = "Brno (tor)"; }
+      else if (h < 48) { flowNow.textContent = "🇷🇴 Rumänien"; flowNext.textContent = "🇭🇺 Ungern"; flowCharge.textContent = "Timișoara SC"; flowSleep.textContent = "Brno (tor)"; }
+      else if (h < 58) { flowNow.textContent = "🇨🇿 Tjeckien"; flowNext.textContent = "🇩🇪 Tyskland"; flowCharge.textContent = "Dresden SC"; flowSleep.textContent = "Spånga ✓"; }
+      else if (h < 68) { flowNow.textContent = "🇩🇪 Tyskland"; flowNext.textContent = "🇩🇰 Danmark"; flowCharge.textContent = "Hamburg SC"; flowSleep.textContent = "Spånga ✓"; }
+      else { flowNow.textContent = "🇸🇪 Sverige"; flowNext.textContent = "Spånga"; flowCharge.textContent = "Jönköping SC"; flowSleep.textContent = "Hemma ✓"; }
+    }
+  }
+}
+updateJourneyFlow();
+setInterval(updateJourneyFlow, 60 * 60 * 1000); // refresh once per hour
+
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => setMode(btn.dataset.mode));
+});
+
+function updateCountdown() {
+  const now = new Date();
+  const el = document.getElementById("countdown");
+  const progressEl = document.getElementById("progressFill");
+
+  let text = "";
+  let pct = 0;
+
+  if (now < DEPARTURE) {
+    // Before trip — countdown to departure
+    const diff = DEPARTURE - now;
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff / 3600000) % 24);
+    if (currentMode === "hem") {
+      const toHome = HOME_AGAIN - now;
+      const dH = Math.floor(toHome / 86400000);
+      text = dH + " dag till hemkomst";
+    } else if (days > 0) {
+      text = days + " dag" + (days === 1 ? "" : "ar") + " till avresa";
+    } else if (hours > 0) {
+      text = hours + " tim till avresa";
+    } else {
+      text = "Snart avresa";
+    }
+    pct = 0;
+  } else if (now < ARRIVE_TRIKORFO) {
+    // On the road south
+    text = "På väg ner → Trikorfo";
+    pct = (now - DEPARTURE) / (ARRIVE_TRIKORFO - DEPARTURE) * 25;
+  } else if (now < RETURN_START) {
+    // At destination
+    const daysLeft = Math.ceil((RETURN_START - now) / 86400000);
+    text = daysLeft + " dag" + (daysLeft === 1 ? "" : "ar") + " kvar i Grekland";
+    pct = 25 + (now - ARRIVE_TRIKORFO) / (RETURN_START - ARRIVE_TRIKORFO) * 50;
+  } else if (now < HOME_AGAIN) {
+    text = "På väg hem → Spånga";
+    pct = 75 + (now - RETURN_START) / (HOME_AGAIN - RETURN_START) * 25;
+  } else {
+    text = "Hemma igen ✓";
+    pct = 100;
+  }
+
+  el.textContent = text;
+  progressEl.style.width = Math.min(100, Math.max(0, pct)) + "%";
+}
+
+// Apply mode on initial load
+setMode(currentMode);
+setInterval(updateCountdown, 60000);
+
+// ==============================================================
+// MAP
+// ==============================================================
+
+let map = null;
+
+try {
+  if (typeof L === "undefined") {
+    throw new Error("Leaflet library not loaded");
+  }
+
+  map = L.map("map", {
+    zoomControl: true,
+    attributionControl: true,
+    scrollWheelZoom: false
+  }).setView([49.5, 19.0], 5);
+
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: "abcd",
+    maxZoom: 19
+  }).addTo(map);
+
+// Route polyline — follows actual roads and bridges (Öresund, Storebælt, Calafat-Vidin)
+const ROUTE_PATH = [
+  // Sverige → Danmark → Tyskland
+  [59.380, 17.894],  // Spånga
+  [58.410, 15.620],  // Linköping
+  [57.782, 14.165],  // Jönköping
+  [56.050, 12.700],  // Helsingborg
+  [55.590, 12.990],  // Malmö
+  [55.680, 12.580],  // Köpenhamn (Öresundsbron)
+  [55.340, 11.040],  // Storebæltsbron
+  [55.490, 9.480],   // Kolding (via Fyn)
+  [54.783, 9.434],   // Flensburg (gräns)
+  [53.553, 9.993],   // Hamburg
+  [52.520, 13.405],  // Berlin
+  // Tyskland → Tjeckien
+  [51.050, 13.740],  // Dresden
+  [50.080, 14.440],  // Prag
+  [49.195, 16.607],  // Brno
+  // Tjeckien → Slovakien → Ungern
+  [48.150, 17.110],  // Bratislava
+  [47.498, 19.040],  // Budapest
+  // Ungern → Rumänien
+  [46.250, 20.150],  // Szeged
+  [45.752, 21.227],  // Timișoara SC
+  // Rumänien transit
+  [45.420, 22.220],  // Caransebeș
+  [44.630, 22.660],  // Drobeta-Turnu Severin
+  [44.312, 23.761],  // Craiova SC
+  // Rumänien → Bulgarien (Calafat-Vidin-bron)
+  [43.990, 22.880],  // Calafat-Vidin bro
+  [43.410, 23.230],  // Montana
+  [42.698, 23.322],  // Sofia
+  // Bulgarien → Grekland
+  [42.020, 23.100],  // Blagoevgrad
+  [41.350, 23.270],  // Kulata/Promachonas (gräns)
+  [41.080, 23.550],  // Serres
+  [40.569, 23.021],  // Thessaloniki SC
+  // Grekland → Chalkidiki
+  [40.240, 23.290],  // Nea Moudania
+  [40.303, 23.432],  // Gerakini
+  [40.287, 23.441]   // Trikorfo Beach
+];
+
+L.polyline(ROUTE_PATH, {
+  color: "#d4a95a",
+  weight: 2.5,
+  opacity: 0.75,
+  dashArray: "8 6",
+  lineCap: "round",
+  lineJoin: "round"
+}).addTo(map);
+
+// Waypoint markers
+WAYPOINTS.forEach((w, i) => {
+  let cls = "aegean-marker";
+  if (w.type === "start" || w.type === "hotel") cls = "gold-marker";
+  if (w.type === "dest") cls = "dest-marker";
+
+  const icon = L.divIcon({
+    className: "",
+    html: `<div class="${cls}"></div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9]
+  });
+
+  L.marker([w.lat, w.lng], { icon: icon })
+    .bindPopup(`<b>${w.name}</b>${w.desc}`)
+    .addTo(map);
+});
+
+// Fit to all waypoints
+map.fitBounds(ROUTE_PATH, { padding: [40, 40] });
+
+// Invalidate size once and again after a moment (fixes mobile render issues)
+setTimeout(() => { if (map) map.invalidateSize(); }, 100);
+setTimeout(() => { if (map) map.invalidateSize(); }, 500);
+
+} catch (mapErr) {
+  console.error("Kartan kunde inte laddas:", mapErr);
+  const mapEl = document.getElementById("map");
+  if (mapEl) {
+    mapEl.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:24px;text-align:center;color:var(--text-muted);gap:10px"><div style="font-size:28px">🗺️</div><div style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:18px;color:var(--gold-soft)">Kartan kunde inte laddas</div><div style="font-size:12px;max-width:320px;line-height:1.5">Kontrollera internetuppkoppling och ladda om sidan. Resten av planeringsverktyget fungerar ändå.</div></div>';
+    mapEl.style.background = "rgba(74,123,166,0.05)";
+  }
+}
+
+// ==============================================================
+// GPS / LIVE MODE
+// ==============================================================
+
+let watchId = null;
+let meMarker = null;
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function findNextWaypoint(lat, lng) {
+  // Find the waypoint the user hasn't reached yet, in route order
+  let minIdx = 0;
+  let minDist = Infinity;
+  for (let i = 0; i < WAYPOINTS.length; i++) {
+    const d = haversine(lat, lng, WAYPOINTS[i].lat, WAYPOINTS[i].lng);
+    if (d < minDist) { minDist = d; minIdx = i; }
+  }
+  // If they're within 5 km of a waypoint, consider it reached — next is next
+  const nextIdx = minDist < 5 && minIdx < WAYPOINTS.length - 1 ? minIdx + 1 : minIdx;
+  return { idx: nextIdx, dist: haversine(lat, lng, WAYPOINTS[nextIdx].lat, WAYPOINTS[nextIdx].lng) };
+}
+
+function updateLive(pos) {
+  const { latitude: lat, longitude: lng } = pos.coords;
+
+  document.getElementById("gpsDot").classList.remove("idle");
+  document.getElementById("gpsStatus").textContent = "Live GPS";
+
+  document.getElementById("livePos").innerHTML = lat.toFixed(3) + "°<span class='unit'>N</span> " + lng.toFixed(3) + "°<span class='unit'>E</span>";
+
+  const { idx, dist } = findNextWaypoint(lat, lng);
+  const next = WAYPOINTS[idx];
+  document.getElementById("liveNext").textContent = next.name;
+  document.getElementById("liveDist").innerHTML = Math.round(dist).toLocaleString("sv-SE") + "<span class='unit'>km</span>";
+
+  // Total remaining = distance to next + sum of segments from next onward
+  let total = dist;
+  for (let i = idx; i < WAYPOINTS.length - 1; i++) {
+    total += haversine(WAYPOINTS[i].lat, WAYPOINTS[i].lng, WAYPOINTS[i+1].lat, WAYPOINTS[i+1].lng);
+  }
+
+  // Find next charge stop + next hotel in route order (look forward through waypoints)
+  let nextCharge = "—", nextHotel = "—";
+  for (let i = idx; i < WAYPOINTS.length; i++) {
+    const w = WAYPOINTS[i];
+    if (nextCharge === "—" && (w.type === "charge" || w.type === "supercharger" || /SC|Supercharger/i.test(w.name))) {
+      nextCharge = w.name.replace(/ Supercharger$/i, " SC");
+    }
+    if (nextHotel === "—" && (w.type === "hotel" || w.type === "overnight")) {
+      nextHotel = w.name;
+    }
+    if (nextCharge !== "—" && nextHotel !== "—") break;
+  }
+  // Fallback: infer charge from well-known SC waypoints
+  if (nextCharge === "—") {
+    const chargeWps = WAYPOINTS.filter((w,i) => i >= idx && /Timi|Craiova|Sofia|Thessaloniki|Malmö|Hamburg|Berlin|Dresden|Bratislava|Budapest/i.test(w.name));
+    if (chargeWps.length) nextCharge = chargeWps[0].name;
+  }
+  if (nextHotel === "—") {
+    const hotelWps = WAYPOINTS.filter((w,i) => i >= idx && /Brno|Sofia|Berlin/i.test(w.name));
+    if (hotelWps.length) nextHotel = hotelWps[0].name;
+  }
+  document.getElementById("liveCharge").textContent = nextCharge;
+  document.getElementById("liveHotel").textContent = nextHotel;
+
+  // ETA to final destination — rough: total km / 95 km/h avg (incl charge stops) + now
+  const hoursToGoal = total / 95;
+  const eta = new Date(Date.now() + hoursToGoal * 3600 * 1000);
+  const etaStr = eta.toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" }) + " kl " + eta.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+  document.getElementById("liveEta").textContent = etaStr;
+
+  // Update marker on map
+  if (meMarker) {
+    meMarker.setLatLng([lat, lng]);
+  } else {
+    const icon = L.divIcon({
+      className: "",
+      html: '<div class="pulse-marker"></div>',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
+    meMarker = L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup("<b>Ni är här</b>");
+  }
+
+  // Update country assistant from GPS
+  updateCountryFromGPS(lat, lng);
+}
+
+function gpsError(err) {
+  document.getElementById("gpsStatus").textContent = "GPS av";
+  document.getElementById("gpsDot").classList.add("idle");
+
+  const codes = {
+    1: "Platsåtkomst nekad.",
+    2: "Position ej tillgänglig.",
+    3: "GPS-timeout — försök igen."
+  };
+  let msg = codes[err.code] || err.message || "Okänt fel";
+
+  // Most common cause: page is opened as local file (file://) which blocks GPS
+  const isLocalFile = location.protocol === "file:" || location.hostname === "";
+  const isInsecure = location.protocol === "http:" && location.hostname !== "localhost";
+
+  if (err.code === 1 && (isLocalFile || isInsecure)) {
+    msg += "\n\nTrolig orsak: sidan är öppnad lokalt (" + location.protocol + "). GPS i webbläsaren kräver att sidan är på en webbserver med HTTPS.\n\nLadda upp filen till er hemsida och öppna via https://...";
+  } else if (err.code === 1) {
+    msg += "\n\nGå till webbläsarens inställningar → Platstjänster → tillåt för denna sida. Sedan ladda om sidan.";
+  } else if (err.code === 2) {
+    msg += "\n\nKolla att platstjänster är påslagna i mobilens inställningar.";
+  }
+
+  alert(msg);
+}
+
+function startGPS() {
+  if (!navigator.geolocation) {
+    alert("Denna enhet stödjer inte GPS.");
+    return;
+  }
+  if (watchId !== null) return;
+  document.getElementById("gpsStatus").textContent = "Söker…";
+  watchId = navigator.geolocation.watchPosition(updateLive, gpsError, {
+    enableHighAccuracy: true,
+    maximumAge: 10000,
+    timeout: 30000
+  });
+}
+
+function stopGPS() {
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+  document.getElementById("gpsStatus").textContent = "GPS av";
+  document.getElementById("gpsDot").classList.add("idle");
+}
+
+function centerOnMe() {
+  if (meMarker) {
+    map.setView(meMarker.getLatLng(), 10);
+    meMarker.openPopup();
+  } else {
+    alert("Starta GPS först.");
+  }
+}
+
+// ==============================================================
+// CAT TRACKERS
+// ==============================================================
+
+function updateTracker(key) {
+  const now = new Date();
+  const time = now.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+  const date = now.toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+  const label = time + " · " + date;
+  localStorage.setItem("trip_" + key, label);
+  document.getElementById(key).textContent = label;
+}
+
+function loadTrackers() {
+  ["catFood", "catWater", "catLitter", "catBreak"].forEach(k => {
+    const v = localStorage.getItem("trip_" + k);
+    if (v) document.getElementById(k).textContent = v;
+  });
+}
+loadTrackers();
+
+// ==============================================================
+// CHECKLISTS (persisted in localStorage)
+// ==============================================================
+
+const CHECKLISTS = {
+  prepChecklist: [
+    "Pass / ID för alla fyra",
+    "Körkort",
+    "Registreringsbevis i bilen",
+    "Försäkringsbrev (LF)",
+    "Kattens EU-pass",
+    "Rabiesvaccination giltig",
+    "Laddkablar + adapter",
+    "Powerbank laddad",
+    "Hotell Brno + Sofia bokade",
+    "Vinjetter köpta (alla länder)",
+    "Tjeckien-undantag registrerat"
+  ],
+  roadChecklist: [
+    "Vinjetter aktiva i nuvarande land",
+    "Nästa hotell bekräftat",
+    "Bilen laddad inför nästa etapp",
+    "Nästa stopp i GPS",
+    "Katten fått mat &amp; vatten",
+    "Katten fått pausa",
+    "Dokument i handskfacket",
+    "Kontanter kvar (EUR + BGN)"
+  ],
+  appChecklist: [
+    "Tesla-appen (uppdaterad)",
+    "ABRP — A Better Route Planner",
+    "Plugshare (backup-laddning)",
+    "Google Maps (offline-kartor)",
+    "BGTOLL (Bulgarien)",
+    "eRovinieta (Rumänien)",
+    "Booking / Hotels.com"
+  ],
+  catChecklist: [
+    "EU-pass för katt",
+    "Giltig rabiesvaccination",
+    "Mikrochip registrerat",
+    "Transport­bur",
+    "Sele + koppel",
+    "Vatten + mat + skål",
+    "Kattlåda + strö"
+  ]
+};
+
+function buildChecklist(id, items) {
+  const ul = document.getElementById(id);
+  ul.innerHTML = items.map((t, i) => `
+    <li data-key="${id}_${i}">
+      <div class="check-box"></div>
+      <div class="check-text">${t}</div>
+    </li>
+  `).join("");
+
+  ul.querySelectorAll("li").forEach(li => {
+    const key = li.dataset.key;
+    if (localStorage.getItem("check_" + key) === "1") li.classList.add("done");
+    li.addEventListener("click", () => {
+      li.classList.toggle("done");
+      localStorage.setItem("check_" + key, li.classList.contains("done") ? "1" : "0");
+      updateProgress(id, items.length);
+    });
+  });
+
+  updateProgress(id, items.length);
+}
+
+function updateProgress(id, total) {
+  const done = document.querySelectorAll("#" + id + " li.done").length;
+  const progressMap = {
+    prepChecklist: "prepProgress",
+    roadChecklist: "roadProgress",
+    appChecklist: "appProgress",
+    catChecklist: "catProgress"
+  };
+  const pEl = document.getElementById(progressMap[id]);
+  if (pEl) pEl.textContent = done + "/" + total;
+}
+
+Object.keys(CHECKLISTS).forEach(id => buildChecklist(id, CHECKLISTS[id]));
+
+// ==============================================================
+// BUDGET CALCULATOR
+// ==============================================================
+
+const DISTANCE = 6460;
+const BRIDGES = 2255;
+const TOLLS = 763;
+
+const bKwh = document.getElementById("bKwh");
+const bPrice = document.getElementById("bPrice");
+const bNights = document.getElementById("bNights");
+const bHotel = document.getElementById("bHotel");
+const bBuffer = document.getElementById("bBuffer");
+
+function fmt(n) { return Math.round(n).toLocaleString("sv-SE") + " kr"; }
+
+function calcBudget() {
+  const k = parseFloat(bKwh.value);
+  const p = parseFloat(bPrice.value);
+  const n = parseInt(bNights.value);
+  const h = parseInt(bHotel.value);
+  const buf = parseInt(bBuffer.value);
+
+  document.getElementById("bKwhOut").textContent = k.toFixed(1).replace(".", ",") + " kWh";
+  document.getElementById("bPriceOut").textContent = p.toFixed(2).replace(".", ",") + " kr";
+  document.getElementById("bNightsOut").textContent = n + " st";
+  document.getElementById("bHotelOut").textContent = h.toLocaleString("sv-SE") + " kr";
+  document.getElementById("bBufferOut").textContent = buf.toLocaleString("sv-SE") + " kr";
+
+  const el = DISTANCE * k / 100 * p;
+  const hot = n * h;
+  const total = el + BRIDGES + TOLLS + hot + buf;
+
+  document.getElementById("bEl").textContent = fmt(el);
+  document.getElementById("bHot").textContent = fmt(hot);
+  document.getElementById("bBuf").textContent = fmt(buf);
+  document.getElementById("bTotal").textContent = fmt(total);
+}
+
+[bKwh, bPrice, bNights, bHotel, bBuffer].forEach(el => el.addEventListener("input", calcBudget));
+
+// Scenario presets
+const SCENARIOS = {
+  budget:  { kwh: 22, price: 3.5, nights: 4, hotel: 900,  buffer: 1000 },
+  normal:  { kwh: 22, price: 4.0, nights: 4, hotel: 1250, buffer: 1500 },
+  comfort: { kwh: 22, price: 4.5, nights: 4, hotel: 1800, buffer: 2500 }
+};
+
+document.querySelectorAll(".scenario-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".scenario-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const s = SCENARIOS[btn.dataset.scenario];
+    bKwh.value = s.kwh;
+    bPrice.value = s.price;
+    bNights.value = s.nights;
+    bHotel.value = s.hotel;
+    bBuffer.value = s.buffer;
+    calcBudget();
+  });
+});
+
+calcBudget();
+
+// ==============================================================
+// SCHEDULE PLAN TOGGLE (3 / 5 dagar)
+// ==============================================================
+
+function setSchedulePlan(plan) {
+  document.querySelectorAll(".sched-tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.plan === plan);
+  });
+  const p3 = document.querySelector(".plan-3day");
+  const p5 = document.querySelector(".plan-5day");
+  if (p3) p3.style.display = plan === "3day" ? "block" : "none";
+  if (p5) p5.style.display = plan === "5day" ? "block" : "none";
+  localStorage.setItem("trip_plan_v1", plan);
+}
+
+document.querySelectorAll(".sched-tab").forEach(tab => {
+  tab.addEventListener("click", () => setSchedulePlan(tab.dataset.plan));
+});
+
+setSchedulePlan(localStorage.getItem("trip_plan_v1") || "3day");
+
+// ==============================================================
+// COUNTRY ASSISTANT
+// ==============================================================
+
+const COUNTRY_INFO = {
+  SE: { name: "Sverige", flag: "🇸🇪",
+    vignette: "Inga vägavgifter inom Sverige. Broavgifter till Danmark.",
+    charging: "Tesla SC + Ionity — bra täckning.",
+    docs: "Pass, körkort, försäkringsbrev, kattpass i handskfack.",
+    tips: ["Fyll på allt innan avfärd", "Dubbelkolla laddkablar och adapter", "Katten ombord, bältad bur"] },
+  DK: { name: "Danmark", flag: "🇩🇰",
+    vignette: "Broavgifter: Öresund 470 DKK + Storebælt 314 DKK (t/r ca 2 255 kr).",
+    charging: "Tesla SC längs E20/E45 — god täckning.",
+    docs: "Pass räcker inom EU.",
+    tips: ["BroBizz eller kort vid broarna", "Fartgräns 130 km/h på motorväg", "Korta avstånd — ingen stress"] },
+  DE: { name: "Tyskland", flag: "🇩🇪",
+    vignette: "Inga vinjetter eller vägavgifter.",
+    charging: "Tesla SC + Ionity — överallt, ofta 250+ kW.",
+    docs: "Pass, försäkringsbrev. Varningsväst + triangel rekommenderas.",
+    tips: ["Inga fartgränser på vissa Autobahn-sträckor (130 rekommenderad)", "Rastplatser ofta välutrustade", "Registrera Tjeckien-undantag innan CZ-gränsen"] },
+  CZ: { name: "Tjeckien", flag: "🇨🇿",
+    vignette: "Elbilar är befriade — MÅSTE registreras online på edalnice.cz innan motorväg!",
+    charging: "Tesla SC vid D1, Ionity längs större rutter.",
+    docs: "EV-undantag registrerat — ta skärmdump som bevis.",
+    tips: ["Registrera undantaget innan motorväg — bötfälls annars", "Fartgräns 130 km/h", "Alkohol 0,0 ‰ — ingen tolerans"] },
+  SK: { name: "Slovakien", flag: "🇸🇰",
+    vignette: "E-vignett 10 dagar: ca 10,80 €. Köp på eznamka.sk eller vid gränsen.",
+    charging: "Växande nät längs D1/D2.",
+    docs: "E-vignett aktiv — spara bekräftelse.",
+    tips: ["Kontroll via reg-nummer", "Fartgräns 130 km/h motorväg", "Bratislava har trängselavgifter i centrum"] },
+  HU: { name: "Ungern", flag: "🇭🇺",
+    vignette: "Vignett D1 10 dagar: ca 10 €. Köp på nemzetiutdij.hu eller bensinstation.",
+    charging: "Tesla SC i Budapest-trakten, Ionity växer.",
+    docs: "E-vignett aktiv — bekräftelse per e-post.",
+    tips: ["Vissa broar i Budapest har separat avgift", "Fartgräns 130 km/h motorväg", "Ha euro eller forint kontant"] },
+  RO: { name: "Rumänien", flag: "🇷🇴",
+    vignette: "Rovinieta 10 dagar: ca 3,30 €. Köp på eRovinieta.ro eller OMV/Petrom.",
+    charging: "Tesla SC Timișoara + Craiova. Eldrive som backup.",
+    docs: "Rovinieta aktiv per reg-nummer.",
+    tips: ["Vägkvalitet varierar — lugnt tempo på landsbygd", "Vissa motorvägssträckor saknas — följer nationalväg", "Fartgräns 130 motorväg, 100 utanför tätort"] },
+  BG: { name: "Bulgarien", flag: "🇧🇬",
+    vignette: "Veckovinjett: 15 BGN (ca 7,67 €). Köp via BGTOLL-appen eller vid gränsen.",
+    charging: "Tesla SC Sofia. Eldrive + e-charge som backup.",
+    docs: "Vinjett aktiv — spara kvitto.",
+    tips: ["Alkohol 0,5 ‰", "Sen sommar — håll katten sval", "Vissa kort krånglar — ha kontant EUR och BGN"] },
+  GR: { name: "Grekland", flag: "🇬🇷",
+    vignette: "Inga vinjetter. Tullar betalas kontant/kort vid tullstation.",
+    charging: "Tesla SC Mediterranean Cosmos (Thessaloniki) — sedan ~80 km till Trikorfo.",
+    docs: "Pass för alla — inga extra dokument.",
+    tips: ["Växla EUR i förväg om möjligt", "Starkt sommarsol — skydda katten", "Tullar accepterar kort på stora sträckor, kontant säkrast"] }
+};
+
+const BORDERS = {
+  "SE-DK": { lat: 55.58, lng: 12.79 },
+  "DK-DE": { lat: 54.50, lng: 11.40 },
+  "DE-CZ": { lat: 49.66, lng: 12.55 },
+  "CZ-SK": { lat: 48.75, lng: 16.97 },
+  "SK-HU": { lat: 47.87, lng: 17.22 },
+  "HU-RO": { lat: 46.17, lng: 20.75 },
+  "RO-BG": { lat: 43.99, lng: 22.88 },
+  "BG-GR": { lat: 41.35, lng: 23.27 }
+};
+
+const ROUTE_DOWN = ["SE", "DK", "DE", "CZ", "SK", "HU", "RO", "BG", "GR"];
+const ROUTE_BACK = ["GR", "BG", "RO", "HU", "SK", "CZ", "DE", "DK", "SE"];
+
+// Narrowest/most-specific bounding boxes first to resolve overlaps
+const COUNTRY_BBOXES = [
+  ["DK", 54.5, 8.0,  57.8, 13.0],
+  ["SK", 47.7, 16.9, 49.6, 22.6],
+  ["HU", 45.7, 16.1, 48.6, 22.9],
+  ["CZ", 48.5, 12.1, 51.1, 18.9],
+  ["GR", 34.8, 19.3, 41.8, 28.3],
+  ["BG", 41.2, 22.3, 44.3, 28.7],
+  ["RO", 43.6, 20.2, 48.3, 29.7],
+  ["DE", 47.3, 5.8,  55.1, 15.2],
+  ["SE", 55.3, 11.0, 69.1, 24.2]
+];
+
+const COUNTRY_NEXT_STOPS = {
+  SE: { charge: "Tesla SC Jönköping/Malmö", hotel: "Berlin-trakten (valfritt)" },
+  DK: { charge: "Tesla SC Kolding eller Flensburg", hotel: "Berlin-trakten (valfritt)" },
+  DE: { charge: "Tesla SC Dresden eller Berlin", hotel: "Brno, Tjeckien" },
+  CZ: { charge: "Tesla SC Brno", hotel: "Brno (nu) eller Sofia" },
+  SK: { charge: "Tesla SC Bratislava eller Budapest", hotel: "Sofia, Bulgarien" },
+  HU: { charge: "Tesla SC Budapest eller Timișoara", hotel: "Sofia, Bulgarien" },
+  RO: { charge: "Tesla SC Timișoara → Craiova", hotel: "Sofia, Bulgarien" },
+  BG: { charge: "Tesla SC Sofia → Thessaloniki", hotel: "Sofia (nu) eller Trikorfo" },
+  GR: { charge: "Tesla SC Thessaloniki (Mediterranean Cosmos)", hotel: "Trikorfo Beach ✓" }
+};
+
+// Use window.* (forward-declared at top) instead of re-declaring with let
+// This avoids Temporal Dead Zone errors when mode switcher runs before this block
+let gpsDrivenCountry = false;
+
+function detectCountry(lat, lng) {
+  for (const [code, minLat, minLng, maxLat, maxLng] of COUNTRY_BBOXES) {
+    if (lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng) return code;
+  }
+  return null;
+}
+
+function getNextCountry(current, direction) {
+  const seq = direction === "back" ? ROUTE_BACK : ROUTE_DOWN;
+  const idx = seq.indexOf(current);
+  if (idx === -1 || idx === seq.length - 1) return null;
+  return seq[idx + 1];
+}
+
+function getBorderPoint(from, to) {
+  return BORDERS[from + "-" + to] || BORDERS[to + "-" + from];
+}
+
+function renderCountryPanel(country, opts) {
+  opts = opts || {};
+  window.currentCountry = country;
+  const info = COUNTRY_INFO[country];
+  if (!info) return;
+
+  const next = getNextCountry(country, window.currentDirection);
+  const nextInfo = next ? COUNTRY_INFO[next] : null;
+
+  document.getElementById("curFlag").textContent = info.flag;
+  document.getElementById("curName").textContent = info.name;
+
+  if (nextInfo) {
+    document.getElementById("nextFlag").textContent = nextInfo.flag;
+    document.getElementById("nextName").textContent = nextInfo.name;
+    document.getElementById("prepCountry").textContent = nextInfo.name;
+
+    let prep = nextInfo.vignette || "Vanliga EU-dokument räcker.";
+    if (next === "CZ") prep = "Registrera EV-undantag online på edalnice.cz innan motorväg. Gör det nu.";
+    if (next === "GR") prep = "Inga vignetter — ha kontant EUR redo för tullstationer.";
+    document.getElementById("prepText").textContent = prep;
+    document.getElementById("prepBox").style.display = "block";
+  } else {
+    document.getElementById("nextFlag").textContent = "🏁";
+    document.getElementById("nextName").textContent = "Framme";
+    document.getElementById("prepBox").style.display = "none";
+  }
+
+  const borderLabel = document.getElementById("borderDistance");
+  const borderProg = document.getElementById("borderProgress");
+  if (opts.distance != null && next) {
+    const dKm = Math.round(opts.distance);
+    borderLabel.innerHTML = "Till gränsen mot <strong>" + nextInfo.name + "</strong> · " + dKm.toLocaleString("sv-SE") + " km";
+    const pct = Math.max(5, Math.min(100, 100 - (dKm / 5)));
+    borderProg.style.width = pct + "%";
+  } else if (next) {
+    borderLabel.innerHTML = "Nästa land: <strong>" + nextInfo.name + "</strong>";
+    borderProg.style.width = "20%";
+  } else {
+    borderLabel.innerHTML = "<strong>Framme vid målet</strong>";
+    borderProg.style.width = "100%";
+  }
+
+  const stops = COUNTRY_NEXT_STOPS[country] || {};
+  document.getElementById("qnCharge").textContent = stops.charge || "—";
+  document.getElementById("qnHotel").textContent = stops.hotel || "—";
+
+  document.getElementById("dVignette").textContent = info.vignette;
+  document.getElementById("dCharging").textContent = info.charging;
+  document.getElementById("dDocs").textContent = info.docs;
+  document.getElementById("dTips").innerHTML = "<ul>" + info.tips.map(t => "<li>" + t + "</li>").join("") + "</ul>";
+
+  document.querySelectorAll(".country-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.code === country);
+  });
+}
+
+function updateCountryFromGPS(lat, lng) {
+  gpsDrivenCountry = true;
+  const detected = detectCountry(lat, lng);
+  if (!detected) return;
+
+  const now = new Date();
+  const returnStart = new Date("2026-08-12T00:00:00+02:00");
+  if (now >= returnStart) {
+    window.currentDirection = "back";
+    syncDirectionUI();
+  }
+
+  const next = getNextCountry(detected, window.currentDirection);
+  let distToBorder = null;
+  if (next) {
+    const border = getBorderPoint(detected, next);
+    if (border) distToBorder = haversine(lat, lng, border.lat, border.lng);
+  }
+
+  renderCountryPanel(detected, { distance: distToBorder });
+}
+
+function toggleCountryDetails() {
+  const el = document.getElementById("countryDetails");
+  const btn = document.getElementById("expandBtn");
+  el.classList.toggle("open");
+  btn.textContent = el.classList.contains("open") ? "Dölj info ▴" : "Visa mer om landet ▾";
+}
+
+(function buildCountryButtons() {
+  const wrap = document.getElementById("countryButtons");
+  const codes = ["SE","DK","DE","CZ","SK","HU","RO","BG","GR"];
+  wrap.innerHTML = codes.map(c => {
+    const info = COUNTRY_INFO[c];
+    return '<button class="country-btn" data-code="' + c + '"><span class="mini-flag">' + info.flag + '</span>' + info.name + '</button>';
+  }).join("");
+  wrap.querySelectorAll(".country-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (gpsDrivenCountry) {
+        if (!confirm("GPS är aktiv och styr landet automatiskt. Sätta manuellt ändå?")) return;
+        gpsDrivenCountry = false;
+      }
+      renderCountryPanel(btn.dataset.code);
+    });
+  });
+})();
+
+document.querySelectorAll("#directionToggle button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const newMode = btn.dataset.dir === "back" ? "hem" : "dit";
+    if (typeof setMode === "function") {
+      setMode(newMode);
+    } else {
+      document.querySelectorAll("#directionToggle button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      window.currentDirection = btn.dataset.dir;
+      renderCountryPanel(window.currentCountry);
+    }
+  });
+});
+
+function syncDirectionUI() {
+  document.querySelectorAll("#directionToggle button").forEach(b => {
+    b.classList.toggle("active", b.dataset.dir === window.currentDirection);
+  });
+}
+
+(function autoDirection() {
+  // Priority: saved mode > date-based auto
+  if (typeof currentMode !== "undefined") {
+    window.currentDirection = currentMode === "hem" ? "back" : "down";
+  } else {
+    const now = new Date();
+    const returnStart = new Date("2026-08-12T00:00:00+02:00");
+    if (now >= returnStart) window.currentDirection = "back";
+  }
+  syncDirectionUI();
+  renderCountryPanel("SE");
+})();
+
+// Re-sync everything now that country panel is live
+if (typeof setMode === "function") setMode(currentMode);
+
+// ==============================================================
+// SPEED COMPARISON
+// ==============================================================
+
+const SPEEDS = [
+  { kmh: 110, cost: 2450, timeH: 33.5, cls: "cold",
+    note: "Låg förbrukning, korta laddstopp, minst stress — men 2 h längre.",
+    summaryHead: "Lugnt tempo, liten besparing",
+    summaryBody: "110 km/h drar minst el och ger längst räckvidd mellan laddstopp, men kostar er 2 timmar extra per resa jämfört med 120. Välj detta om ni reser i mörker eller vill hålla katten extra lugn.",
+    summaryCls: "aegean" },
+  { kmh: 120, cost: 2700, timeH: 31.5, cls: "rec", badge: "Rekommenderad",
+    note: "Bästa balansen mellan tid, kostnad och komfort. Tesla trivs här.",
+    summaryHead: "Bästa valet för er resa",
+    summaryBody: "120 km/h är den optimala punkten för en Model Y på motorväg. Ni kommer fram nästan lika snabbt som vid 130 men sparar ~400 kr och slipper extra laddstopp. Behagligt för hela familjen.",
+    summaryCls: "sage" },
+  { kmh: 130, cost: 3100, timeH: 30.75, cls: "mid",
+    note: "Sparar ~1 h men kostar ~400 kr mer och kräver fler laddstopp.",
+    summaryHead: "Snabbare, men till ett pris",
+    summaryBody: "130 km/h ger er en timme extra vid huset, men förbrukningen ökar markant och ni måste ladda oftare. Går bra på korta sträckor men blir jobbigt över 3 000 km.",
+    summaryCls: "gold" },
+  { kmh: 140, cost: 3500, timeH: 30.25, cls: "warn", badge: "Undvik",
+    note: "Hög förbrukning, mest laddstopp, stressigt med familj och katt.",
+    summaryHead: "Sällan värt det",
+    summaryBody: "Att köra 140 km/h sparar bara cirka 1 timme jämfört med 120 km/h, men ökar kostnaden med ~800 kr och laddtiden markant. På en lång elbilsresa med familj är det nästan aldrig värt det.",
+    summaryCls: "danger" }
+];
+
+const BASELINE_IDX = 1;
+let currentSpeedIdx = BASELINE_IDX;
+
+function fmtKr(n) { return n.toLocaleString("sv-SE") + " kr"; }
+function fmtH(h) {
+  const hrs = Math.floor(h);
+  const mins = Math.round((h - hrs) * 60);
+  return hrs + " h" + (mins > 0 ? " " + mins + " min" : "");
+}
+
+function buildSpeedCards() {
+  const wrap = document.getElementById("speedCards");
+  const base = SPEEDS[BASELINE_IDX];
+
+  wrap.innerHTML = SPEEDS.map((s, i) => {
+    const dCost = s.cost - base.cost;
+    const dTime = s.timeH - base.timeH;
+
+    let deltaHTML = "";
+    if (i !== BASELINE_IDX) {
+      const costCls = dCost > 0 ? "plus" : "minus";
+      const timeCls = dTime < 0 ? "minus" : "plus";
+      const costSign = dCost > 0 ? "+" : "−";
+      const timeSign = dTime > 0 ? "+" : "−";
+      const absMin = Math.round(Math.abs(dTime) * 60);
+      const timeStr = absMin >= 60 ? (Math.abs(dTime).toFixed(1).replace(".0","").replace(".",",") + " h") : (absMin + " min");
+      deltaHTML = '<div class="delta"><span class="' + costCls + '">' + costSign + Math.abs(dCost).toLocaleString("sv-SE") + ' kr</span><br><span class="' + timeCls + '">' + timeSign + timeStr + '</span></div>';
+    } else {
+      deltaHTML = '<div class="delta"><span class="zero">basvärde</span></div>';
+    }
+
+    let badge = "";
+    if (s.badge) badge = '<div class="corner-badge">' + s.badge + '</div>';
+
+    return '<div class="speed-card ' + s.cls + '" data-idx="' + i + '">' +
+      badge + deltaHTML +
+      '<div class="kmh">' + s.kmh + '<span class="kmh-unit">km/h</span></div>' +
+      '<div class="stats-row">' +
+        '<div class="stat"><div class="stat-label">Kostnad</div><div class="stat-val">' + fmtKr(s.cost) + '</div></div>' +
+        '<div class="stat"><div class="stat-label">Restid</div><div class="stat-val">' + fmtH(s.timeH) + '</div></div>' +
+      '</div>' +
+      '<div class="note">' + s.note + '</div>' +
+      '</div>';
+  }).join("");
+
+  wrap.querySelectorAll(".speed-card").forEach(card => {
+    card.addEventListener("click", () => selectSpeed(parseInt(card.dataset.idx)));
+  });
+}
+
+function selectSpeed(idx) {
+  currentSpeedIdx = idx;
+  document.querySelectorAll(".speed-card").forEach(c => {
+    c.classList.toggle("active", parseInt(c.dataset.idx) === idx);
+  });
+  document.getElementById("speedSlider").value = idx;
+
+  const s = SPEEDS[idx];
+  const summary = document.getElementById("speedSummary");
+  summary.className = "speed-summary " + s.summaryCls;
+  document.getElementById("speedHeadline").textContent = s.summaryHead;
+  document.getElementById("speedBody").textContent = s.summaryBody;
+}
+
+buildSpeedCards();
+selectSpeed(BASELINE_IDX);
+
+document.getElementById("speedSlider").addEventListener("input", (e) => {
+  selectSpeed(parseInt(e.target.value));
+});
+
+// ==============================================================
+// NAV
+// ==============================================================
+
+function jumpTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+}
+
+// Active nav highlight on scroll
+const navBtns = document.querySelectorAll(".nav-btn");
+const sectionIds = ["top", "live", "map-section", "stages", "emergency"];
+
+window.addEventListener("scroll", () => {
+  const scrollY = window.scrollY + 100;
+  let activeIdx = 0;
+  sectionIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop <= scrollY) activeIdx = i;
+  });
+  navBtns.forEach((b, i) => b.classList.toggle("active", i === activeIdx));
+});
+
+</script>
+</body>
+</html>
